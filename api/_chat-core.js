@@ -12,7 +12,7 @@
 //   STREAM_BUDGET_MS — сколько стримим после этого (большие файлы кода успевают).
 // Плюс idle-таймаут: если апстрим молчит дольше IDLE_MS — обрываем.
 
-import { GUEST_MODEL, FALLBACK_MODEL, isAllowed, modelInfo, isPaid, costKopecks } from './_models.js';
+import { GUEST_MODEL, FALLBACK_MODEL, isAllowed, modelInfo, isPaid, costKopecks, modelLabel } from './_models.js';
 import { PROVIDERS, canonicalMessages } from './_providers.js';
 import { guestIdentity, readUsage, hasRoom, charge, estimateTokens } from './_usage.js';
 import { readBalance, chargeBalance } from './_accounts.js';
@@ -27,9 +27,9 @@ const PER_KEY_OPEN_TIMEOUT_MS = 6000;
 
 const SYSTEM_PROMPT = `Сейчас {{DATETIME}} по Москве. Учитывай это, если это уместно (утро, день, вечер, ночь).
 
-Ты — Kulsh, ИИ-ассистент в открытом веб-чате Kulsh (KulshAI). Репозиторий проекта: https://github.com/starfall-apk/kulsh-web.
+Ты — Kulsh, ИИ-ассистент в открытом веб-чате Kulsh (KulshAI).
 
-ТВОЯ МОДЕЛЬ. Прямо сейчас ты работаешь на модели «{{MODEL}}» (провайдер {{PROVIDER}}). Это твоя настоящая модель в этом ответе. Если пользователь спросит, какая ты модель, какая у тебя версия или кто тебя сделал — честно назови «{{MODEL}}». Не притворяйся другой моделью, не выдумывай чужие версии и не отрицай, что ты ИИ.
+ТВОЯ МОДЕЛЬ. Прямо сейчас ты работаешь на модели «{{MODEL}}». Это твоя настоящая модель в этом ответе. Если пользователь спросит, какая ты модель, какая у тебя версия или кто тебя сделал — честно назови «{{MODEL}}». Не притворяйся другой моделью, не выдумывай чужие версии и не отрицай, что ты ИИ. Провайдера и инфраструктуру не раскрывай.
 
 ПОЛЬЗОВАТЕЛЬ. {{USER_CONTEXT}} Обращайся по имени, если оно известно. Можешь по-дружески подмечать полезное (например, что дневной лимит почти исчерпан), но без навязчивости.
 
@@ -86,8 +86,6 @@ function mskDatetime() {
     return new Date().toISOString();
   }
 }
-
-const PROVIDER_LABELS = { google: 'Google Gemini', neutralbeats: 'NeutralBeats' };
 
 function buildUserContext({ user, guest, usage }) {
   if (guest) {
@@ -198,9 +196,9 @@ export async function runChat(req, ctx = {}) {
 
   const user = ctx.user || null;
   const guest = !user;
-  let { messages, model, temperature: rawTemp, customPrompt, skillsPrompt, recall, hasOldMedia, isContinue } = body || {};
+  let { messages, model, temperature: rawTemp, customPrompt, skillsPrompt, recall, hasOldMedia, isContinue, webSearch } = body || {};
   if (guest) {
-    model = GUEST_MODEL; customPrompt = ''; skillsPrompt = ''; rawTemp = 0.9; recall = false; hasOldMedia = false; isContinue = false;
+    model = GUEST_MODEL; customPrompt = ''; skillsPrompt = ''; rawTemp = 0.9; recall = false; hasOldMedia = false; isContinue = false; webSearch = false;
     if (Array.isArray(messages)) {
       messages = messages.slice(-GUEST_MAX_MESSAGES).map((m) => ({ ...m, attachments: [] }));
     }
@@ -211,6 +209,7 @@ export async function runChat(req, ctx = {}) {
 
   const selectedModel = isAllowed(model) ? model : FALLBACK_MODEL;
   const selectedInfo = modelInfo(selectedModel);
+  const searchOn = !!webSearch && !!selectedInfo && selectedInfo.provider === 'google';
 
   const hasAnyMedia = contents.some((m) => m.media && m.media.length);
   if (hasAnyMedia && selectedInfo && selectedInfo.vision === false) {
@@ -243,7 +242,7 @@ export async function runChat(req, ctx = {}) {
   if (!guest && isPaid(selectedModel)) {
     balanceKop = await readBalance(process.env, user.id);
     if (balanceKop <= 0) {
-      const msg = `На балансе 0 ₽, а ${selectedInfo ? selectedInfo.label : selectedModel} — платная модель. ` +
+      const msg = `На балансе 0 ₽, а ${modelLabel(selectedModel)} — платная модель. ` +
         'Пополни баланс в боте (/balance) или выбери бесплатную модель.';
       return api ? fail(402, msg, 'balance_empty') : sseError(msg, usageHeaders);
     }
@@ -255,8 +254,7 @@ export async function runChat(req, ctx = {}) {
   const userContext = buildUserContext({ user, guest, usage });
   let systemText = SYSTEM_PROMPT
     .replace('{{DATETIME}}', mskDatetime())
-    .replace('{{MODEL}}', selectedInfo ? selectedInfo.label : selectedModel)
-    .replace('{{PROVIDER}}', PROVIDER_LABELS[selectedInfo && selectedInfo.provider] || '')
+    .replace('{{MODEL}}', modelLabel(selectedModel))
     .replace('{{USER_CONTEXT}}', userContext)
     .replace('{{RECALL_NOTE}}', note);
   if (typeof customPrompt === 'string' && customPrompt.trim()) {
@@ -338,6 +336,7 @@ export async function runChat(req, ctx = {}) {
       try {
         const res = await provider.open({
           model: mdl, key: order[ki], messages: contents, systemText, temperature,
+          webSearch: searchOn,
           signal: ctrl.signal, env: process.env,
         });
         clearTimeout(timer);
@@ -401,6 +400,7 @@ export async function runChat(req, ctx = {}) {
       const send = (obj) => {
         try { controller.enqueue(enc.encode(`data: ${JSON.stringify(obj)}\n\n`)); } catch {}
       };
+      if (searchOn) send({ search: true });
       const reader = upstream.body.getReader();
       let buf = '';
       let rawAll = '';
@@ -408,6 +408,7 @@ export async function runChat(req, ctx = {}) {
       let stalled = false;
       let fatal = null;
       let usageTokens = 0;
+      let reasoningSent = false;
       const diag = { ctype: (upstream.headers.get('content-type') || '').toLowerCase(), dataLines: 0, events: 0, reasoningChars: 0, head: '' };
 
       let idleTimer = null;
@@ -427,7 +428,10 @@ export async function runChat(req, ctx = {}) {
         diag.events++;
         const ev = activeProvider.parseEvent(data);
         if (ev && ev.blocked) blocked = ev.blocked;
-        if (ev && ev.reasoning) diag.reasoningChars += ev.reasoning.length;
+        if (ev && ev.reasoning) {
+          diag.reasoningChars += ev.reasoning.length;
+          if (!reasoningSent) { reasoningSent = true; send({ thinking: true }); }
+        }
         if (ev && ev.usage) usageTokens = Math.max(usageTokens, ev.usage);
         const raw = (ev && ev.text) || '';
         const text = raw ? markFilter.push(raw) : '';

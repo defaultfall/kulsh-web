@@ -10,6 +10,18 @@
       "destination": "/api/auth?action=:action"
     },
     {
+      "source": "/api/v1/chat/completions",
+      "destination": "/api/v1/chat?openai=1"
+    },
+    {
+      "source": "/v1/chat/completions",
+      "destination": "/api/v1/chat?openai=1"
+    },
+    {
+      "source": "/v1/models",
+      "destination": "/api/v1/models"
+    },
+    {
       "source": "/chat",
       "destination": "/chat/index.html"
     },

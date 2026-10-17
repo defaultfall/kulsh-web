@@ -44,19 +44,21 @@ const google = {
     for (const name of this.envKeys) { const k = (env[name] || '').trim(); if (k) out.push(k); }
     return out;
   },
-  async open({ model, key, messages, systemText, temperature, signal }) {
+  async open({ model, key, messages, systemText, temperature, signal, webSearch }) {
     const contents = messages.map(geminiContent).filter(Boolean);
     const url = `${GEMINI_BASE}/${encodeURIComponent(model)}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`;
+    const payload = {
+      system_instruction: { parts: [{ text: systemText }] },
+      contents,
+      generationConfig: { temperature, maxOutputTokens: 16384 },
+      safetySettings: SAFETY,
+    };
+    if (webSearch) payload.tools = [{ google_search: {} }];
     return fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal,
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemText }] },
-        contents,
-        generationConfig: { temperature, maxOutputTokens: 16384 },
-        safetySettings: SAFETY,
-      }),
+      body: JSON.stringify(payload),
     });
   },
   parseEvent(data) {
@@ -159,10 +161,33 @@ export function canonicalMessages(messages) {
   const out = [];
   for (const m of messages) {
     if (!m || (m.role !== 'user' && m.role !== 'assistant')) continue;
-    const text = m.content ? String(m.content) : '';
-    const media = Array.isArray(m.attachments)
-      ? m.attachments.filter((a) => a && a.data && a.mimeType)
-      : [];
+    let text = '';
+    let media = [];
+    if (Array.isArray(m.content)) {
+      // [OI]-совместимый content: [{type:'text'}, {type:'image_url'}].
+      const texts = [];
+      for (const part of m.content) {
+        if (!part) continue;
+        if (part.type === 'text' && part.text) texts.push(String(part.text));
+        else if (part.type === 'image_url') {
+          const url = part.image_url && part.image_url.url;
+          if (typeof url === 'string' && url.startsWith('data:')) {
+            const comma = url.indexOf(',');
+            if (comma > 0) {
+              const meta = url.slice(5, comma);
+              const mimeType = meta.split(';')[0] || 'image/png';
+              media.push({ mimeType, data: url.slice(comma + 1), name: 'image' });
+            }
+          }
+        }
+      }
+      text = texts.join('\n');
+    } else {
+      text = m.content ? String(m.content) : '';
+      media = Array.isArray(m.attachments)
+        ? m.attachments.filter((a) => a && a.data && a.mimeType)
+        : [];
+    }
     if (!text.trim() && !media.length) continue;
     out.push({ role: m.role, text, media });
   }

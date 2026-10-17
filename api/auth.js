@@ -129,19 +129,20 @@ export default async function handler(req) {
     if (!(await verifyTelegram(data, env.TELEGRAM_BOT_TOKEN.trim()))) return json({ error: 'bad_signature' }, 401);
     const name = [data.first_name, data.last_name].filter(Boolean).join(' ') || data.username || 'Telegram user';
     const identity = `tg:${data.id}`;
+    const avatar = `/api/avatar?id=${data.id}`;
     if (mode === 'link') {
       const current = await readSession(req, env);
       if (!current || !current.id) return json({ error: 'auth_required' }, 401);
       const pending = await putPending(env, {
         kind: 'link', identity, acct: normIdentity(current.id),
-        profile: { name, avatar: data.photo_url || '', handle: data.username ? `@${data.username}` : '' },
+        profile: { name, avatar, handle: data.username ? `@${data.username}` : '' },
       });
       return json({ pending });
     }
     const acct = await resolveIdentity(env, identity, {
-      name, avatar: data.photo_url || '', handle: data.username ? `@${data.username}` : '',
+      name, avatar, handle: data.username ? `@${data.username}` : '',
     });
-    const user = { id: acct, name, avatar: data.photo_url || '', provider: 'telegram', handle: data.username ? `@${data.username}` : '', identity };
+    const user = { id: acct, name, avatar, provider: 'telegram', handle: data.username ? `@${data.username}` : '', identity };
     return json({ user }, 200, { 'Set-Cookie': setCookie(SESSION_COOKIE, await signSession(user, env.AUTH_SECRET), { req }) });
   }
 
@@ -158,8 +159,10 @@ export default async function handler(req) {
     if (platform !== 'tg' && platform !== 'telegram') return json({ error: 'bad_code' }, 400);
     const name = String(link.name || (platform === 'tg' ? 'Telegram' : 'Telegram'));
     const identity = String(link.identity);
+    const tgId = identity.startsWith('tg:') ? identity.slice(3) : '';
+    const avatar = tgId ? `/api/avatar?id=${tgId}` : '';
     const token = await putPending(env, {
-      kind: 'login', identity, profile: { name }, code,
+      kind: 'login', identity, profile: { name, avatar }, code,
     });
     return json({
       ok: true,
@@ -183,7 +186,7 @@ export default async function handler(req) {
     const user = {
       id: acct,
       name: (pending.profile && pending.profile.name) || 'Telegram',
-      avatar: '',
+      avatar: (pending.profile && pending.profile.avatar) || '',
       provider,
       handle: '',
     };

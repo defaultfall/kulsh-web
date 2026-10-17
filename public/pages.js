@@ -37,7 +37,7 @@
       // --- Главная ---
       'home.title': 'Kulsh — open-source ИИ-ассистент',
       'home.h1': 'Общайся с <span class="accent">Кульшем</span><br>на любом языке и моделях',
-      'home.sub': 'Открытый ИИ-ассистент: несколько моделей в одном чате — Gemini, DeepSeek, GLM и Kimi. Голос, вложения, скиллы и история, которая живёт в твоём аккаунте.',
+      'home.sub': 'Открытый ИИ-ассистент: Claude, GPT, Gemini, Grok, DeepSeek, Qwen, GLM и Kimi в одном чате. Голос, вложения, скиллы и история, которая живёт в твоём аккаунте.',
       'home.start': 'Начать бесплатно', 'home.aboutBtn': 'О проекте',
       'badge.voice': 'Голосовой ввод', 'badge.attach': 'Вложения',
       'feat.eyebrow': 'Возможности', 'feat.h2': 'Всё для работы и разговора — в одном месте',
@@ -48,8 +48,10 @@
       'feat.4.t': 'Голос', 'feat.4.d': 'Говори вместо печати и слушай ответы — распознавание и озвучка прямо в браузере.',
       'feat.5.t': 'Скиллы', 'feat.5.d': 'Подключай markdown-скиллы: свои инструкции и наборы знаний, которые подгружаются по требованию.',
       'feat.6.t': 'Синхронизация', 'feat.6.d': 'История и настройки сохраняются в аккаунте и доступны на всех твоих устройствах.',
-      'models.eyebrow': 'Модели', 'models.h2': 'Выбирай модель под задачу',
-      'models.p': 'Один дневной лимит токенов на все модели — но расходуется по-разному. Лёгкие модели почти «бесплатны», флагманы тратят больше.',
+      'models.eyebrow': 'Модели', 'models.h2': 'Официальные цены — и наши',
+      'models.p': 'Сравни, сколько стоит миллион токенов у разработчика и сколько у нас. Бесплатные модели входят в дневной лимит, платные списываются с общего баланса.',
+      'pricing.note': 'Цены за 1 млн токенов, вход / выход. Официальные — публичные тарифы разработчиков; у нас — цены Kulsh. Экономия считается по средней цене входа и выхода.',
+      'pricing.official': 'Официально', 'pricing.ours': 'У нас', 'pricing.save': 'Экономия', 'pricing.free': 'в лимите', 'pricing.model': 'Модель',
       'tag.generous': 'щедро', 'tag.limited': 'ограниченный лимит', 'tag.novision': 'без зрения',
       'm.gemini.d': 'Стабильные и быстрые модели Google — универсальный выбор на каждый день.',
       'm.dsf.d': 'Самый выгодный по лимиту, хорошо держит длинный контекст.',
@@ -106,7 +108,7 @@
 
       'home.title': 'Kulsh — an open-source AI assistant',
       'home.h1': 'Chat with <span class="accent">Kulsh</span><br>in any language, on any model',
-      'home.sub': 'An open AI assistant: several models in one chat — Gemini, DeepSeek, GLM and Kimi. Voice, attachments, skills and a history that lives in your account.',
+      'home.sub': 'An open AI assistant: Claude, GPT, Gemini, Grok, DeepSeek, Qwen, GLM and Kimi in one chat. Voice, attachments, skills and a history that lives in your account.',
       'home.start': 'Start for free', 'home.aboutBtn': 'About the project',
       'badge.voice': 'Voice input', 'badge.attach': 'Attachments',
       'feat.eyebrow': 'Features', 'feat.h2': 'Everything for work and talk — in one place',
@@ -117,8 +119,10 @@
       'feat.4.t': 'Voice', 'feat.4.d': 'Speak instead of typing and listen to replies — recognition and speech right in the browser.',
       'feat.5.t': 'Skills', 'feat.5.d': 'Plug in markdown skills: your instructions and knowledge sets, loaded only on demand.',
       'feat.6.t': 'Sync', 'feat.6.d': 'History and settings are saved to your account and available on all your devices.',
-      'models.eyebrow': 'Models', 'models.h2': 'Pick a model for the task',
-      'models.p': 'One daily budget of tokens for every model — but it drains differently. Light models are nearly free, flagships spend more.',
+      'models.eyebrow': 'Models', 'models.h2': 'Official prices — and ours',
+      'models.p': 'Compare what a million tokens costs from the developer and from us. Free models are covered by the daily limit, paid ones are charged to the shared balance.',
+      'pricing.note': 'Prices per 1M tokens, input / output. Official prices are the developers’ public rates; ours are Kulsh prices. Savings use the average of input and output.',
+      'pricing.official': 'Official', 'pricing.ours': 'Ours', 'pricing.save': 'Savings', 'pricing.free': 'in the limit', 'pricing.model': 'Model',
       'tag.generous': 'generous', 'tag.limited': 'limited limit', 'tag.novision': 'no vision',
       'm.gemini.d': 'Stable and fast Google models — a universal everyday choice.',
       'm.dsf.d': 'The best value on limits, strong with long context.',
@@ -183,6 +187,10 @@
     const page = document.documentElement.dataset.page;
     if (page && d[page + '.title']) document.title = d[page + '.title'];
     document.querySelectorAll('.lang-switch button').forEach((b) => b.classList.toggle('is-active', b.dataset.lang === lang));
+    document.querySelectorAll('.chip-logo[data-logo]').forEach((el) => {
+      if (!el.innerHTML.trim() && window.kulshLogoSVG) el.innerHTML = window.kulshLogoSVG(el.dataset.logo);
+    });
+    renderPricing();
     initButtonWaves();
     window.dispatchEvent(new CustomEvent('kulsh-lang-change'));
   }
@@ -253,6 +261,56 @@
         }
       });
     });
+  }
+
+  // ---------- Таблица цен: официально vs Kulsh ----------
+  const PRICING_ROWS = [
+    { logo: 'gemini',   tone: 'mint',  name: 'Gemini 2.5 Flash',      dev: 'Google DeepMind', official: [0.30, 2.50],  ours: [0, 0],       free: true },
+    { logo: 'gemini',   tone: 'mint',  name: 'Gemini 3.5 Flash',      dev: 'Google DeepMind', official: [0.50, 3.00],  ours: [0, 0],       free: true },
+    { logo: 'deepseek', tone: 'sky',   name: 'DeepSeek V4.1 Flash',   dev: 'DeepSeek',        official: [0.28, 0.42],  ours: [0, 0],       free: true },
+    { logo: 'deepseek', tone: 'sky',   name: 'DeepSeek V4 Pro',       dev: 'DeepSeek',        official: [0.55, 2.19],  ours: [0, 0],       free: true },
+    { logo: 'zai',      tone: 'mint',  name: 'GLM 5.3 Flash',         dev: 'Z.AI',            official: [0.60, 2.20],  ours: [0, 0],       free: true },
+    { logo: 'kimi',     tone: 'amber', name: 'Kimi K3',               dev: 'Moonshot AI',     official: [0.60, 2.50],  ours: [0, 0],       free: true },
+    { logo: 'openai',   tone: 'sky',   name: 'GPT-6 Luna',            dev: '[OI]',            official: [0.25, 2.00],  ours: [0, 0],       free: true },
+    { logo: 'openai',   tone: 'amber', name: 'GPT-6.1 Sol',           dev: '[OI]',            official: [1.25, 10.00], ours: [0, 0],       free: true },
+    { logo: 'openai',   tone: 'rose',  name: 'GPT-6 Astra',           dev: '[OI]',            official: [1.25, 10.00], ours: [0.34, 1.70], free: false },
+    { logo: 'xai',      tone: 'rose',  name: 'Grok 4.7',              dev: 'xAI',             official: [3.00, 15.00], ours: [0.20, 1.00], free: false },
+    { logo: 'qwen',     tone: 'mint',  name: 'Qwen3.8 Max',           dev: 'Alibaba',         official: [1.60, 6.40],  ours: [0.20, 1.00], free: false },
+  ];
+
+  function renderPricing() {
+    const host = document.getElementById('pricingTable');
+    if (!host) return;
+    const d = tr();
+    const money = (v) => '$' + (Number(v) || 0).toFixed(2);
+    const head = `<div class="pricing-head">
+      <span>${d['pricing.model'] || (lang === 'en' ? 'Model' : 'Модель')}</span>
+      <span>${d['pricing.official']}</span>
+      <span>${d['pricing.ours']}</span>
+      <span>${d['pricing.save']}</span>
+    </div>`;
+    const rows = PRICING_ROWS.map((r) => {
+      const avgOfficial = (r.official[0] + r.official[1]) / 2;
+      const avgOurs = (r.ours[0] + r.ours[1]) / 2;
+      const pct = r.free || !avgOurs ? 100 : Math.max(0, Math.round((1 - avgOurs / avgOfficial) * 100));
+      const ours = r.free
+        ? `<b>$0</b> / <b>$0</b>`
+        : `<b>${money(r.ours[0])}</b> / <b>${money(r.ours[1])}</b>`;
+      const logo = window.kulshLogoSVG ? window.kulshLogoSVG(r.logo) : '';
+      return `<div class="pricing-row">
+        <div class="pricing-model">
+          <span class="pricing-logo tone-${r.tone || 'mint'}">${logo}</span>
+          <span class="pricing-model-text">
+            <span class="pricing-name">${r.name}</span>
+            <span class="pricing-dev">${r.dev}</span>
+          </span>
+        </div>
+        <div class="pricing-price" data-label="${d['pricing.official']}">${money(r.official[0])} / ${money(r.official[1])}</div>
+        <div class="pricing-price" data-label="${d['pricing.ours']}">${ours}</div>
+        <div class="pricing-save" data-label="${d['pricing.save']}">−${pct}%</div>
+      </div>`;
+    }).join('');
+    host.innerHTML = head + rows;
   }
 
   // ---------- Появление секций при прокрутке ----------

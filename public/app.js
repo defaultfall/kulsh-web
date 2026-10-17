@@ -6,35 +6,56 @@
   // MODELS
   // ============================================================
   const MODELS = [
-    // ---- Google Gemini ----
-    { id: 'gemini-2.5-flash',      name: 'Gemini 2.5 Flash',      provider: 'google', vision: true,  mult: 1,   icon: 'bolt',         tone: 'amber', desc: { ru: 'Стабильная, быстрая модель', en: 'Stable, fast model' } },
-    { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', provider: 'google', vision: true,  mult: 1,   icon: 'flash_on',     tone: 'sky',   desc: { ru: 'Самая быстрая и лёгкая', en: 'Fastest and lightest' } },
-    { id: 'gemini-3.5-flash',      name: 'Gemini 3.5 Flash',      provider: 'google', vision: true,  mult: 1.5, icon: 'auto_awesome', tone: 'mint',  desc: { ru: 'Баланс скорости и качества', en: 'Balance of speed and quality' } },
-    { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash Lite', provider: 'google', vision: true,  mult: 1.5, icon: 'speed',        tone: 'sky',   desc: { ru: 'Облегчённая версия 3.5', en: 'Lightweight 3.5 variant' } },
-    { id: 'gemini-3.6-flash',      name: 'Gemini 3.6 Flash',      provider: 'google', vision: true,  mult: 3,   icon: 'auto_awesome', tone: 'mint',  desc: { ru: 'Улучшенное рассуждение', en: 'Improved reasoning' } },
-    { id: 'gemini-3.7-flash',      name: 'Gemini 3.7 Flash',      provider: 'google', vision: true,  mult: 3,   icon: 'auto_awesome', tone: 'rose',  desc: { ru: 'Новее и точнее', en: 'Newer and more accurate' } },
-    { id: 'gemini-3.8-flash',      name: 'Gemini 3.8 Flash',      provider: 'google', vision: true,  mult: 3,   icon: 'auto_awesome', tone: 'rose',  desc: { ru: 'Самая новая модель линейки', en: 'The newest in the lineup' } },
-    // ---- NeutralBeats ----
-    { id: 'deepseek-v4.1-flash',   name: 'DeepSeek V4.1 Flash',   provider: 'neutralbeats', vision: true,  mult: 1, icon: 'psychology', tone: 'mint',  desc: { ru: 'Выгодная и умная, большой контекст', en: 'Great value, large context' } },
-    { id: 'deepseek-v4-pro',       name: 'DeepSeek V4 Pro',       provider: 'neutralbeats', vision: false, mult: 2, icon: 'neurology',  tone: 'sky',   desc: { ru: 'Усиленное рассуждение, без зрения', en: 'Strong reasoning, no vision' } },
-    { id: 'glm-5.3-flash',         name: 'GLM 5.3 Flash',         provider: 'neutralbeats', vision: true,  mult: 1, icon: 'bolt',       tone: 'mint',  desc: { ru: 'Быстрая и аккуратная', en: 'Fast and precise' } },
-    { id: 'kimi-k3',               name: 'Kimi K3',               provider: 'neutralbeats', vision: true,  mult: 3, icon: 'star',       tone: 'amber', desc: { ru: 'Сильна в длинных текстах', en: 'Strong with long text' } },
-    // ---- Платные модели: списываются с общего баланса (как в боте) ----
-    { id: 'grok-4.7',              name: 'Grok 4.7',              provider: 'neutralbeats', vision: true,  mult: 3, icon: 'bolt',        tone: 'rose',  paid: true, desc: { ru: 'Платная · $0.20 / $1.00 за 1M', en: 'Paid · $0.20 / $1.00 per 1M' } },
-    { id: 'claude-haiku-5-5',      name: 'Claude Haiku 5.5',      provider: 'neutralbeats', vision: true,  mult: 1, icon: 'speed',       tone: 'mint',  desc: { ru: 'Лёгкая и быстрая, бесплатная', en: 'Light and fast, free' } },
-    { id: 'claude-sonnet-5-5',     name: 'Claude Sonnet 5.5',     provider: 'neutralbeats', vision: true,  mult: 3, icon: 'auto_awesome', tone: 'rose', paid: true, desc: { ru: 'Платная · $0.40 / $2.00 за 1M', en: 'Paid · $0.40 / $2.00 per 1M' } },
-    { id: 'claude-opus-5-5',       name: 'Claude Opus 5.5',       provider: 'neutralbeats', vision: true,  mult: 3, icon: 'neurology',   tone: 'rose',  paid: true, desc: { ru: 'Платная · $0.60 / $3.20 за 1M', en: 'Paid · $0.60 / $3.20 per 1M' } },
-    { id: 'claude-fable-5-1',      name: 'Claude Fable 5.1',      provider: 'neutralbeats', vision: true,  mult: 3, icon: 'star',        tone: 'rose',  paid: true, desc: { ru: 'Платная · $1.20 / $6.00 за 1M', en: 'Paid · $1.20 / $6.00 per 1M' } },
-    { id: 'gpt-6-luna',            name: 'GPT-6 Luna',            provider: 'neutralbeats', vision: true,  mult: 2, icon: 'dark_mode',   tone: 'sky',   desc: { ru: 'Тихая и аккуратная, бесплатная', en: 'Quiet and neat, free' } },
-    { id: 'gpt-6.1-sol',           name: 'GPT-6.1 Sol',           provider: 'neutralbeats', vision: true,  mult: 3, icon: 'light_mode',  tone: 'amber', desc: { ru: 'Сильная, бесплатная', en: 'Strong, free' } },
-    { id: 'gpt-6-astra',           name: 'GPT-6 Astra',           provider: 'neutralbeats', vision: true,  mult: 3, icon: 'auto_awesome', tone: 'rose', paid: true, desc: { ru: 'Платная · $0.34 / $1.70 за 1M', en: 'Paid · $0.34 / $1.70 per 1M' } },
-    { id: 'qwen3.8-max-0902',      name: 'Qwen3.8 Max',           provider: 'neutralbeats', vision: true,  mult: 3, icon: 'dragon',      tone: 'mint',  paid: true, desc: { ru: 'Платная · $0.20 / $1.00 за 1M', en: 'Paid · $0.20 / $1.00 per 1M' } },
+    // ---- Anthropic ----
+    { id: 'claude-opus-5-5', name: 'Claude Opus 5.5', dev: 'anthropic', provider: 'neutralbeats', vision: true, mult: 3, logo: 'claude', tone: 'rose', paid: true, desc: { ru: 'Платная · $0.60 / $3.20 за 1M', en: 'Paid · $0.60 / $3.20 per 1M' } },
+    { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5', dev: 'anthropic', provider: 'neutralbeats', vision: true, mult: 3, logo: 'claude', tone: 'mint', paid: true, desc: { ru: 'Платная · $0.40 / $2.00 за 1M', en: 'Paid · $0.40 / $2.00 per 1M' } },
+    { id: 'claude-fable-5-1', name: 'Claude Fable 5.1', dev: 'anthropic', provider: 'neutralbeats', vision: true, mult: 3, logo: 'claude', tone: 'amber', paid: true, desc: { ru: 'Платная · $1.20 / $6.00 за 1M', en: 'Paid · $1.20 / $6.00 per 1M' } },
+    { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5', dev: 'anthropic', provider: 'neutralbeats', vision: true, mult: 1, logo: 'claude', tone: 'sky', desc: { ru: 'Бесплатная, входит в дневной лимит', en: 'Free, included in the daily limit' } },
+    // ---- DeepSeek ----
+    { id: 'deepseek-v4-pro',       name: 'DeepSeek V4 Pro',       dev: 'deepseek', provider: 'neutralbeats', vision: false, mult: 2, logo: 'deepseek', tone: 'sky',   desc: { ru: 'Усиленное рассуждение, без зрения', en: 'Strong reasoning, no vision' } },
+    { id: 'deepseek-v4.1-flash',   name: 'DeepSeek V4.1 Flash',   dev: 'deepseek', provider: 'neutralbeats', vision: true,  mult: 1, logo: 'deepseek', tone: 'mint',  desc: { ru: 'Выгодная и умная, большой контекст', en: 'Great value, large context' } },
+    // ---- Google DeepMind ----
+    { id: 'gemini-3.8-flash',      name: 'Gemini 3.8 Flash',      dev: 'google', provider: 'google', vision: true,  mult: 3,   logo: 'gemini', tone: 'rose',  desc: { ru: 'Самая новая модель линейки', en: 'The newest in the lineup' } },
+    { id: 'gemini-3.7-flash',      name: 'Gemini 3.7 Flash',      dev: 'google', provider: 'google', vision: true,  mult: 3,   logo: 'gemini', tone: 'rose',  desc: { ru: 'Новее и точнее', en: 'Newer and more accurate' } },
+    { id: 'gemini-3.6-flash',      name: 'Gemini 3.6 Flash',      dev: 'google', provider: 'google', vision: true,  mult: 3,   logo: 'gemini', tone: 'mint',  desc: { ru: 'Улучшенное рассуждение', en: 'Improved reasoning' } },
+    { id: 'gemini-3.5-flash',      name: 'Gemini 3.5 Flash',      dev: 'google', provider: 'google', vision: true,  mult: 1.5, logo: 'gemini', tone: 'mint',  desc: { ru: 'Баланс скорости и качества', en: 'Balance of speed and quality' } },
+    { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash Lite', dev: 'google', provider: 'google', vision: true,  mult: 1.5, logo: 'gemini', tone: 'sky',   desc: { ru: 'Облегчённая версия 3.5', en: 'Lightweight 3.5 variant' } },
+    { id: 'gemini-2.5-flash',      name: 'Gemini 2.5 Flash',      dev: 'google', provider: 'google', vision: true,  mult: 1,   logo: 'gemini', tone: 'amber', desc: { ru: 'Стабильная, быстрая модель', en: 'Stable, fast model' } },
+    { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', dev: 'google', provider: 'google', vision: true,  mult: 1,   logo: 'gemini', tone: 'sky',   desc: { ru: 'Самая быстрая и лёгкая', en: 'Fastest and lightest' } },
+    // ---- Moonshot AI ----
+    { id: 'kimi-k3',               name: 'Kimi K3',               dev: 'moonshot', provider: 'neutralbeats', vision: true,  mult: 3, logo: 'kimi', tone: 'amber', desc: { ru: 'Сильна в длинных текстах', en: 'Strong with long text' } },
+    // ---- [OI] ----
+    { id: 'gpt-6.1-sol',           name: 'GPT-6.1 Sol',           dev: 'openai', provider: 'neutralbeats', vision: true,  mult: 3, logo: 'openai', tone: 'amber', desc: { ru: 'Сильная, бесплатная', en: 'Strong, free' } },
+    { id: 'gpt-6-astra',           name: 'GPT-6 Astra',           dev: 'openai', provider: 'neutralbeats', vision: true,  mult: 3, logo: 'openai', tone: 'rose',  paid: true, desc: { ru: 'Платная · $0.34 / $1.70 за 1M', en: 'Paid · $0.34 / $1.70 per 1M' } },
+    { id: 'gpt-6-luna',            name: 'GPT-6 Luna',            dev: 'openai', provider: 'neutralbeats', vision: true,  mult: 2, logo: 'openai', tone: 'sky',   desc: { ru: 'Тихая и аккуратная, бесплатная', en: 'Quiet and neat, free' } },
+    // ---- Z.AI ----
+    { id: 'glm-5.3-flash',         name: 'GLM 5.3 Flash',         dev: 'zai', provider: 'neutralbeats', vision: true,  mult: 1, logo: 'zai', tone: 'mint',  desc: { ru: 'Быстрая и аккуратная', en: 'Fast and precise' } },
+    // ---- xAI ----
+    { id: 'grok-4.7',              name: 'Grok 4.7',              dev: 'xai', provider: 'neutralbeats', vision: true,  mult: 3, logo: 'xai', tone: 'rose',  paid: true, desc: { ru: 'Платная · $0.20 / $1.00 за 1M', en: 'Paid · $0.20 / $1.00 per 1M' } },
+    // ---- Alibaba ----
+    { id: 'qwen3.8-max-0902',      name: 'Qwen3.8 Max',           dev: 'alibaba', provider: 'neutralbeats', vision: true,  mult: 3, logo: 'qwen', tone: 'mint',  paid: true, desc: { ru: 'Платная · $0.20 / $1.00 за 1M', en: 'Paid · $0.20 / $1.00 per 1M' } },
   ];
 
-  // Человекочитаемые названия провайдеров для группировки в списке моделей.
-  const PROVIDER_LABELS = { google: 'Google Gemini', neutralbeats: 'NeutralBeats' };
-  const PROVIDER_ORDER = ['google', 'neutralbeats'];
+  // Группировка по разработчикам — как в боте. Провайдер наружу не показываем.
+  const DEV_LABELS = {
+    anthropic: 'Anthropic', deepseek: 'DeepSeek', google: 'Google DeepMind',
+    moonshot: 'Moonshot AI', openai: '[OI]', zai: 'Z.AI', xai: 'xAI', alibaba: 'Alibaba',
+  };
+  const DEV_ORDER = ['anthropic', 'deepseek', 'google', 'moonshot', 'openai', 'zai', 'xai', 'alibaba'];
+
   const modelById = (id) => MODELS.find((m) => m.id === id) || null;
+
+  // Anthropic-модели показываем по их id: family + версия.
+  function modelName(m) {
+    if (!m) return '';
+    if (m.dev === 'anthropic' && m.id) {
+      const p = String(m.id).split('-');
+      const family = p[1] ? p[1][0].toUpperCase() + p[1].slice(1) : '';
+      const ver = p.slice(2).join('.');
+      return ('Claude ' + family + ' ' + ver).trim();
+    }
+    return m.name;
+  }
 
 
   // Уровни усилий.
@@ -86,6 +107,7 @@
       fontFamily: 'gsans',
       reduceMotion: false,
       effort: 'medium',
+      webSearch: false,
       skills: [],
     };
     try {
@@ -170,6 +192,7 @@
     attachBtn: $('#attachBtn'),
     fileInput: $('#fileInput'),
     composerInput: $('#composerInput'),
+    webSearchToggle: $('#webSearchToggle'),
     micBtn: $('#micBtn'),
     sendBtn: $('#sendBtn'),
 
@@ -368,18 +391,18 @@
     const KA = window.KulshAuth;
     const currentModelId = KA.guest ? KA.GUEST_MODEL : (chat ? chat.model : AppState.settings.defaultModel);
     const current = MODELS.find((m) => m.id === currentModelId) || MODELS[0];
-    el.modelPickerName.textContent = current.name.replace(/^Gemini\s*/i, '');
+    el.modelPickerName.textContent = modelName(current).replace(/^Gemini\s*/i, '');
     const chip = document.getElementById('emptyModel');
-    if (chip) chip.textContent = current.id;
+    if (chip) chip.textContent = modelName(current);
 
     el.modelPickerMenu.innerHTML = '';
     const lang = AppState.settings.lang;
-    PROVIDER_ORDER.forEach((prov) => {
-      const list = MODELS.filter((m) => m.provider === prov);
+    DEV_ORDER.forEach((dev) => {
+      const list = MODELS.filter((m) => m.dev === dev);
       if (!list.length) return;
       const head = document.createElement('div');
       head.className = 'model-menu-section';
-      head.textContent = PROVIDER_LABELS[prov] || prov;
+      head.textContent = DEV_LABELS[dev] || dev;
       el.modelPickerMenu.appendChild(head);
 
       list.forEach((m) => {
@@ -387,10 +410,13 @@
         const opt = document.createElement('button');
         opt.className = 'model-option' + (m.id === currentModelId ? ' is-selected' : '') + (locked ? ' is-locked' : '');
         opt.setAttribute('role', 'option');
+        const paid = m.paid
+          ? '<span class="material-symbols-rounded model-paid" title="' + (lang === 'ru' ? 'Платная модель' : 'Paid model') + '">credit_card</span>'
+          : '';
         opt.innerHTML = `
-          <span class="model-option-icon tone-${m.tone || 'mint'}"><span class="material-symbols-rounded">${m.icon}</span></span>
+          <span class="model-option-icon tone-${m.tone || 'mint'}">${window.kulshLogoSVG ? window.kulshLogoSVG(m.logo) : ''}</span>
           <span class="model-option-text">
-            <span class="model-option-name">${m.name}${m.paid ? ' 💳' : ''}</span>
+            <span class="model-option-name">${modelName(m)}${paid}</span>
             <span class="model-option-desc">${m.desc[lang] || m.desc.ru}</span>
           </span>
           ${locked ? '<span class="lock">' + KA.ICON.lock + '</span>' : (m.id === currentModelId ? '<span class="material-symbols-rounded check">check</span>' : '')}
@@ -401,36 +427,11 @@
           if (c) { c.model = m.id; saveChats(AppState.chats); }
           else { AppState.settings.defaultModel = m.id; saveSettings(AppState.settings); }
           renderModelPicker();
+          renderComposerTools();
           closeModelPicker();
         });
         el.modelPickerMenu.appendChild(opt);
       });
-    });
-
-    const divider = document.createElement('div');
-    divider.className = 'model-menu-section';
-    divider.textContent = window.t('effort.title');
-    el.modelPickerMenu.appendChild(divider);
-
-    EFFORTS.forEach((e) => {
-      const selected = (AppState.settings.effort || 'medium') === e.id;
-      const opt = document.createElement('button');
-      opt.className = 'model-option' + (selected ? ' is-selected' : '');
-      opt.setAttribute('role', 'option');
-      opt.innerHTML = `
-        <span class="model-option-icon tone-${e.tone}"><span class="material-symbols-rounded">${e.icon}</span></span>
-        <span class="model-option-text">
-          <span class="model-option-name">${window.t('effort.' + e.id)}</span>
-          <span class="model-option-desc">${window.t('effort.' + e.id + '.desc')}</span>
-        </span>
-        ${selected ? '<span class="material-symbols-rounded check">check</span>' : ''}
-      `;
-      opt.addEventListener('click', () => {
-        AppState.settings.effort = e.id;
-        saveSettings(AppState.settings);
-        renderModelPicker();
-      });
-      el.modelPickerMenu.appendChild(opt);
     });
   }
 
@@ -1258,9 +1259,17 @@
 
     const avatar = document.createElement('div');
     avatar.className = 'msg-avatar';
-    avatar.innerHTML = m.role === 'user'
-      ? '<span class="material-symbols-rounded">person</span>'
-      : mascotSVG(mascotState(m));
+    if (m.role === 'user') {
+      const u = window.KulshAuth && window.KulshAuth.user;
+      avatar.innerHTML = (u && u.avatar)
+        ? `<img src="${escapeAttr(u.avatar)}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'material-symbols-rounded',textContent:'person'}))">`
+        : '<span class="material-symbols-rounded">person</span>';
+    } else {
+      avatar.innerHTML = mascotSVG(mascotState(m));
+    }
+
+    const stack = document.createElement('div');
+    stack.className = 'msg-stack';
 
     const body = document.createElement('div');
     body.className = 'msg-body';
@@ -1274,7 +1283,8 @@
     if (m.role !== 'user' && m.model) {
       const mod = document.createElement('span');
       mod.className = 'msg-model';
-      mod.textContent = String(m.model).replace(/^gemini-/, '');
+      const mm = modelById(m.model);
+      mod.textContent = mm ? modelName(mm).replace(/^Gemini\s*/i, '') : String(m.model).replace(/^gemini-/, '');
       meta.appendChild(mod);
     }
     if (m.ts) {
@@ -1300,6 +1310,20 @@
         tray.appendChild(chip);
       });
       body.appendChild(tray);
+    }
+
+    if (m.role !== 'user' && (m.thinking || m.searching || m.searchUsed)) {
+      const status = document.createElement('div');
+      status.className = 'msg-status';
+      if (m.searching || (m.searchUsed && m.streaming)) {
+        status.insertAdjacentHTML('beforeend',
+          '<span class="status-plate" data-kind="search"><span class="material-symbols-rounded">travel_explore</span><span>Поиск в интернете</span><span class="status-shimmer"></span></span>');
+      }
+      if (m.thinking && m.streaming && !m.text) {
+        status.insertAdjacentHTML('beforeend',
+          '<span class="status-plate" data-kind="thinking"><span class="status-dot"></span><span>Размышляет</span><span class="status-shimmer"></span></span>');
+      }
+      if (status.childElementCount) body.appendChild(status);
     }
 
     const content = document.createElement('div');
@@ -1337,6 +1361,8 @@
       body.appendChild(cont);
     }
 
+    stack.appendChild(body);
+
     if (!m.pending) {
       const actions = document.createElement('div');
       actions.className = 'msg-actions';
@@ -1366,11 +1392,11 @@
         regenBtn.addEventListener('click', () => regenerateFrom(m.id));
         actions.appendChild(regenBtn);
       }
-      body.appendChild(actions);
+      stack.appendChild(actions);
     }
 
     wrap.appendChild(avatar);
-    wrap.appendChild(body);
+    wrap.appendChild(stack);
     return wrap;
   }
 
@@ -1445,6 +1471,36 @@
   function autoGrow() {
     el.composerInput.style.height = 'auto';
     el.composerInput.style.height = Math.min(el.composerInput.scrollHeight, 200) + 'px';
+  }
+
+  function modelSupportsSearch(id) {
+    const m = modelById(id);
+    return !!m && m.provider === 'google';
+  }
+
+  function currentComposerModel() {
+    const chat = getActiveChat();
+    return window.KulshAuth.guest ? window.KulshAuth.GUEST_MODEL
+      : (chat ? chat.model : AppState.settings.defaultModel);
+  }
+
+  function renderComposerTools() {
+    const effort = AppState.settings.effort || 'medium';
+    $$('.effort-chip').forEach((b) => b.classList.toggle('is-active', b.dataset.effort === effort));
+    if (!el.webSearchToggle) return;
+    const supported = modelSupportsSearch(currentComposerModel());
+    if (!supported && AppState.settings.webSearch) {
+      AppState.settings.webSearch = false;
+      saveSettings(AppState.settings);
+    }
+    const on = !!AppState.settings.webSearch;
+    el.webSearchToggle.classList.toggle('is-active', on);
+    el.webSearchToggle.classList.toggle('is-disabled', !supported);
+    el.webSearchToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+    el.webSearchToggle.disabled = !supported;
+    el.webSearchToggle.title = supported
+      ? window.t('composer.search')
+      : (AppState.settings.lang === 'en' ? 'Web search works with Gemini models' : 'Поиск работает на моделях Gemini');
   }
 
   function setSendingState(isSending) {
@@ -1554,7 +1610,7 @@
 
   async function requestAssistantReply(chat, opts) {
     opts = opts || {};
-    const pendingMsg = { id: uid(), role: 'assistant', text: '', pending: true, ts: Date.now(), model: chat.model };
+    const pendingMsg = { id: uid(), role: 'assistant', text: '', pending: true, ts: Date.now(), model: chat.model, searchUsed: !!AppState.settings.webSearch };
     chat.messages.push(pendingMsg);
     renderMessages();
     setSendingState(true);
@@ -1591,6 +1647,7 @@
             messages: payload.messages,
             model: window.KulshAuth.guest ? window.KulshAuth.GUEST_MODEL : chat.model,
             temperature: AppState.settings.temperature,
+            webSearch: !!AppState.settings.webSearch && modelSupportsSearch(window.KulshAuth.guest ? window.KulshAuth.GUEST_MODEL : chat.model),
             customPrompt: cp,
             skillsPrompt,
             recall: recallPass,
@@ -1620,6 +1677,14 @@
             try { obj = JSON.parse(jsonStr); } catch { continue; }
             if (obj.recall) recallAsked = true;
             if (obj.truncated) gotTruncated = true;
+            if (obj.thinking) {
+              const msg = getMsg();
+              if (msg && !msg.text) { msg.thinking = true; msg.pending = false; msg.streaming = true; scheduleStreamRender(); }
+            }
+            if (obj.search) {
+              const msg = getMsg();
+              if (msg) { msg.searching = true; msg.searchUsed = true; msg.pending = false; msg.streaming = true; scheduleStreamRender(); }
+            }
             if (obj.error && !fullText) { gotError = obj.error; continue; }
             if (obj.delta) {
               deltaCount++;
@@ -1669,6 +1734,8 @@
         if (cur) {
           cur.text = cleanRecall(cur.text || fullText).trim();
           cur.stopped = !!AppState.stoppedByUser;
+          cur.thinking = false;
+          cur.searching = false;
           if (gotTruncated && !AppState.stoppedByUser) cur.truncated = true;
           delete cur.pending; delete cur.streaming;
           if (AppState.settings.voiceAutoplay && !AppState.stoppedByUser) speakText(cur.text);
@@ -1721,13 +1788,16 @@
 
     content.style.display = 'none';
     content.after(box);
+    node.classList.add('is-editing');
     ta.focus();
     ta.setSelectionRange(ta.value.length, ta.value.length);
     autoGrowEl(ta);
+    ta.addEventListener('input', () => autoGrowEl(ta));
 
     const close = (saveIt) => {
       box.remove();
       content.style.display = '';
+      node.classList.remove('is-editing');
       if (!saveIt) return;
       const chat = getActiveChat();
       const mm = chat && chat.messages.find((x) => x.id === m.id);
@@ -1757,6 +1827,14 @@
     if (!ta) return;
     ta.style.height = 'auto';
     ta.style.height = Math.min(ta.scrollHeight, 360) + 'px';
+  }
+
+  function autoGrowAllTextareas() {
+    $$('.text-area').forEach((ta) => {
+      if (ta.offsetParent === null) return;
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 240) + 'px';
+    });
   }
 
   function continueMessage(m) {
@@ -1859,7 +1937,7 @@
   function openSettings() {
     el.settingsBackdrop.classList.add('is-open');
     el.settingsDialog.classList.add('is-open');
-    requestAnimationFrame(refreshAllSliderFills);
+    requestAnimationFrame(() => { refreshAllSliderFills(); autoGrowAllTextareas(); });
   }
   function closeSettings() {
     el.settingsBackdrop.classList.remove('is-open');
@@ -1875,15 +1953,15 @@
 
   function populateModelSelect() {
     el.defaultModelSelect.innerHTML = '';
-    PROVIDER_ORDER.forEach((prov) => {
-      const list = MODELS.filter((m) => m.provider === prov);
+    DEV_ORDER.forEach((dev) => {
+      const list = MODELS.filter((m) => m.dev === dev);
       if (!list.length) return;
       const group = document.createElement('optgroup');
-      group.label = PROVIDER_LABELS[prov] || prov;
+      group.label = DEV_LABELS[dev] || dev;
       list.forEach((m) => {
         const opt = document.createElement('option');
         opt.value = m.id;
-        opt.textContent = m.name;
+        opt.textContent = modelName(m);
         if (m.id === AppState.settings.defaultModel) opt.selected = true;
         group.appendChild(opt);
       });
@@ -2231,6 +2309,29 @@
 
     el.composerInput.addEventListener('input', () => { autoGrow(); updateMentionMenu(); });
     el.composerInput.addEventListener('blur', () => setTimeout(hideMentionMenu, 150));
+
+    $$('.effort-chip').forEach((b) => {
+      b.addEventListener('click', () => {
+        AppState.settings.effort = b.dataset.effort;
+        saveSettings(AppState.settings);
+        renderComposerTools();
+      });
+    });
+    if (el.webSearchToggle) {
+      el.webSearchToggle.addEventListener('click', () => {
+        if (!modelSupportsSearch(currentComposerModel())) return;
+        AppState.settings.webSearch = !AppState.settings.webSearch;
+        saveSettings(AppState.settings);
+        renderComposerTools();
+      });
+    }
+    renderComposerTools();
+    $$('.text-area').forEach((ta) => {
+      ta.addEventListener('input', () => {
+        ta.style.height = 'auto';
+        ta.style.height = Math.min(ta.scrollHeight, 240) + 'px';
+      });
+    });
     el.composerInput.addEventListener('keydown', (e) => {
       if (mentionOpen()) {
         if (e.key === 'ArrowDown') { e.preventDefault(); highlightMention(mentionActive + 1); return; }
@@ -2433,6 +2534,8 @@
     el.defaultModelSelect.addEventListener('change', () => {
       AppState.settings.defaultModel = el.defaultModelSelect.value;
       saveSettings(AppState.settings);
+      renderComposerTools();
+      renderModelPicker();
     });
 
     el.voiceSelect.addEventListener('change', () => {

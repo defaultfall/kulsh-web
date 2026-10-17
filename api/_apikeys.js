@@ -82,6 +82,14 @@ export async function revokeApiKey(env, userId, keyId) {
   return { ok: true };
 }
 
+// Достаёт ключ из запроса: Bearer, api-key или x-api-key — как в популярных клиентах.
+export function apiKeyFromRequest(req) {
+  const auth = req.headers.get('authorization') || '';
+  const bearer = auth.replace(/^Bearer\s+/i, '').trim();
+  if (bearer) return bearer;
+  return (req.headers.get('api-key') || req.headers.get('x-api-key') || '').trim();
+}
+
 // Разрешает ключ в userId. Возвращает null, если ключ неверный/отозван.
 export async function resolveApiKey(env, rawKey) {
   const key = String(rawKey || '').trim();
@@ -96,7 +104,6 @@ export async function resolveApiKey(env, rawKey) {
     return null;
   }
 }
-
 // Отметка «последнее использование» — не критично, обновляем best-effort.
 export async function touchApiKey(env, userId, rawKey) {
   const b = backend(env);

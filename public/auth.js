@@ -154,7 +154,7 @@
     // и когда ты гость, и когда авторизован.
     accountBtn.innerHTML = A.user
       ? `<span class="acc-slot">${avatarHTML(A.user, 'account-av')}</span><span class="account-name">${esc(A.user.name)}</span>`
-      : `<span class="acc-slot"><span class="material-symbols-rounded">person</span></span><span>${esc(s.login)}</span>`;
+      : `<span class="acc-slot"><span class="material-symbols-rounded">person</span></span><span class="account-name">${esc(s.login)}</span>`;
     document.documentElement.dataset.guest = A.user ? 'off' : 'on';
   }
 

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Kulsh API — документация</title>
 <meta name="description" content="Документация API Kulsh: эндпоинты, аутентификация, модели, лимиты и примеры запросов." />
-<meta name="theme-color" content="#100D16" />
+<meta name="theme-color" content="#07060B" />
 <meta name="color-scheme" content="dark light" />
 
 <link rel="icon" type="image/png" href="/assets/logo.png" />
@@ -17,9 +17,10 @@
 <link rel="preload" href="/fonts/google-sans-code-latin.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="/fonts/material-symbols-rounded-v2.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/fonts/fonts-v2.css" />
-<link rel="stylesheet" href="/auth.css" />
-<link rel="stylesheet" href="/pages.css" />
+<link rel="stylesheet" href="/auth.css?v=20261019" />
+<link rel="stylesheet" href="/pages.css?v=20261019" />
 <script>try{var s=JSON.parse(localStorage.getItem("kulshgpt.settings.v1")||"{}"),r=document.documentElement,t=s.theme||"dark";if(t==="system")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";r.dataset.theme=t;r.dataset.accent=s.accent||"violet";var lg=s.lang||((navigator.language||"ru").toLowerCase().indexOf("ru")===0?"ru":"en");r.lang=lg}catch(e){}</script>
+<link rel="stylesheet" href="/ui.css?v=20261019" />
 </head>
 <body>
 
@@ -103,6 +104,17 @@
           <li data-i18n-html="docs.overview.l2">Формат: JSON, ответ — поток событий <code>text/event-stream</code></li>
           <li data-i18n-html="docs.overview.l3">Аутентификация: заголовок <code>Authorization: Bearer &lt;API_KEY&gt;</code></li>
         </ul>
+        <div class="callout">
+          <span class="material-symbols-rounded">extension</span>
+          <p><b>[OI]-совместимость.</b> Для IDE и клиентов есть <code>POST /api/v1/chat/completions</code> (или <code>POST /v1/chat/completions</code>) с обычными <code>choices[].delta.content</code> и <code>data: [DONE]</code>, а также <code>GET /api/v1/models</code> в формате <code>{"object":"list","data":[...]}</code>. Поддерживаются <code>stream: true</code> и <code>stream: false</code>. Базовый URL для таких клиентов: <code>https://kulsh.vercel.app/v1</code>, ключ — тот же <code>kulsh_sk_...</code>.</p>
+        </div>
+
+        <h3>Пример [OI]-совместимого запроса</h3>
+        <div class="code"><pre><span class="c-com"># curl</span>
+curl https://kulsh.vercel.app/v1/chat/completions \
+  -H <span class="c-str">"Authorization: Bearer $KULSH_API_KEY"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"model":"deepseek-v4.1-flash","stream":true,"messages":[{"role":"user","content":"привет"}]}'</span></pre></div>
 
         <h2 id="auth" data-i18n="docs.nav.auth">Аутентификация</h2>
         <p data-i18n="docs.auth.p">Ключ создаётся в аккаунте Kulsh. Один ключ работает и для веб-чата, и для API, а расход идёт с общего баланса и бесплатного лимита.</p>
@@ -184,7 +196,7 @@ Authorization: Bearer <span class="c-str">kulsh_sk_...</span></pre></div>
   </div>
 </footer>
 
-<script src="/auth.js"></script>
-<script src="/pages.js"></script>
+<script src="/auth.js?v=20261019"></script>
+<script src="/pages.js?v=20261019"></script>
 </body>
 </html>

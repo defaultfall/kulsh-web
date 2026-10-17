@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Kulsh — open-source ИИ-ассистент</title>
-<meta name="description" content="Kulsh — открытый ИИ-ассистент: несколько моделей (Gemini, DeepSeek, GLM, Kimi), голос, вложения, скиллы и история чатов." />
-<meta name="theme-color" content="#100D16" />
+<meta name="description" content="Kulsh — открытый ИИ-ассистент: Claude, GPT, Gemini, Grok, DeepSeek, Qwen, GLM и Kimi в одном чате. Голос, вложения, скиллы и история." />
+<meta name="theme-color" content="#07060B" />
 <meta name="color-scheme" content="dark light" />
 
 <link rel="icon" type="image/png" href="/assets/logo.png" />
@@ -17,9 +17,10 @@
 <link rel="preload" href="/fonts/google-sans-code-latin.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="/fonts/material-symbols-rounded-v2.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/fonts/fonts-v2.css" />
-<link rel="stylesheet" href="/auth.css" />
-<link rel="stylesheet" href="/pages.css" />
+<link rel="stylesheet" href="/auth.css?v=20261019" />
+<link rel="stylesheet" href="/pages.css?v=20261019" />
 <script>try{var s=JSON.parse(localStorage.getItem("kulshgpt.settings.v1")||"{}"),r=document.documentElement,t=s.theme||"dark";if(t==="system")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";r.dataset.theme=t;r.dataset.accent=s.accent||"violet";var lg=s.lang||((navigator.language||"ru").toLowerCase().indexOf("ru")===0?"ru":"en");r.lang=lg}catch(e){}</script>
+<link rel="stylesheet" href="/ui.css?v=20261019" />
 </head>
 <body>
 
@@ -87,12 +88,14 @@
       <a class="btn btn-outline" href="/about" data-i18n="home.aboutBtn" data-wave>О проекте</a>
     </div>
     <div class="hero-badges">
-      <span class="chip"><span class="material-symbols-rounded">auto_awesome</span>Gemini</span>
-      <span class="chip"><span class="material-symbols-rounded">psychology</span>DeepSeek</span>
-      <span class="chip"><span class="material-symbols-rounded">bolt</span>GLM</span>
-      <span class="chip"><span class="material-symbols-rounded">star</span>Kimi</span>
-      <span class="chip"><span class="material-symbols-rounded">mic</span><span data-i18n="badge.voice">Голосовой ввод</span></span>
-      <span class="chip"><span class="material-symbols-rounded">attach_file</span><span data-i18n="badge.attach">Вложения</span></span>
+      <span class="chip"><span class="chip-logo" data-logo="claude"></span>Claude</span>
+      <span class="chip"><span class="chip-logo" data-logo="openai"></span>GPT</span>
+      <span class="chip"><span class="chip-logo" data-logo="gemini"></span>Gemini</span>
+      <span class="chip"><span class="chip-logo" data-logo="xai"></span>Grok</span>
+      <span class="chip"><span class="chip-logo" data-logo="deepseek"></span>DeepSeek</span>
+      <span class="chip"><span class="chip-logo" data-logo="qwen"></span>Qwen</span>
+      <span class="chip"><span class="chip-logo" data-logo="zai"></span>GLM</span>
+      <span class="chip"><span class="chip-logo" data-logo="kimi"></span>Kimi</span>
     </div>
   </div>
 </section>
@@ -140,60 +143,16 @@
   </div>
 </section>
 
-<!-- ============ MODELS ============ -->
+<!-- ============ MODELS / PRICING ============ -->
 <section class="section" id="models">
   <div class="wrap">
     <div class="section-head reveal">
       <div class="eyebrow" data-i18n="models.eyebrow">Модели</div>
-      <h2 data-i18n="models.h2">Выбирай модель под задачу</h2>
-      <p data-i18n="models.p">Одна шкала бесплатного лимита на все модели — но расходуется по-разному. Лёгкие модели почти «бесплатны», флагманы тратят больше.</p>
+      <h2 data-i18n="models.h2">Официальные цены — и наши</h2>
+      <p data-i18n="models.p">Сравни, сколько стоит миллион токенов у разработчика и сколько у нас. Бесплатные модели входят в дневной лимит, платные списываются с общего баланса.</p>
     </div>
-    <div class="panel reveal">
-      <div class="rows">
-        <div class="row">
-          <span class="row-dot dot-violet"></span>
-          <div class="row-main">
-            <div class="row-name">Gemini 2.5 / 3.5 Flash <span class="tag tag-pro" data-i18n="tag.generous">щедро</span></div>
-            <div class="row-desc" data-i18n="m.gemini.d">Стабильные и быстрые модели Google — универсальный выбор на каждый день.</div>
-          </div>
-        </div>
-        <div class="row">
-          <span class="row-dot dot-mint"></span>
-          <div class="row-main">
-            <div class="row-name">DeepSeek V4.1 Flash <span class="tag tag-pro" data-i18n="tag.generous">щедро</span></div>
-            <div class="row-desc" data-i18n="m.dsf.d">Самый выгодный по лимиту, хорошо держит длинный контекст.</div>
-          </div>
-        </div>
-        <div class="row">
-          <span class="row-dot dot-sky"></span>
-          <div class="row-main">
-            <div class="row-name">DeepSeek V4 Pro <span class="tag tag-muted" data-i18n="tag.novision">без зрения</span></div>
-            <div class="row-desc" data-i18n="m.dsp.d">Усиленное рассуждение для кода и сложных задач. Изображения не принимает.</div>
-          </div>
-        </div>
-        <div class="row">
-          <span class="row-dot dot-mint"></span>
-          <div class="row-main">
-            <div class="row-name">GLM 5.3 Flash <span class="tag tag-pro" data-i18n="tag.generous">щедро</span></div>
-            <div class="row-desc" data-i18n="m.glm.d">Быстрая и аккуратная, с большим контекстом.</div>
-          </div>
-        </div>
-        <div class="row">
-          <span class="row-dot dot-amber"></span>
-          <div class="row-main">
-            <div class="row-name">Kimi K3 <span class="tag" data-i18n="tag.limited">ограниченный лимит</span></div>
-            <div class="row-desc" data-i18n="m.kimi.d">Сильная в длинных текстах, расходует бесплатный лимит заметно быстрее.</div>
-          </div>
-        </div>
-        <div class="row">
-          <span class="row-dot dot-rose"></span>
-          <div class="row-main">
-            <div class="row-name">Gemini 3.6 — 3.8 Flash <span class="tag" data-i18n="tag.limited">ограниченный лимит</span></div>
-            <div class="row-desc" data-i18n="m.gemini38.d">Новейшие модели линейки: точнее, но дороже по лимиту.</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="panel pricing reveal" id="pricingTable"></div>
+    <p class="pricing-note" data-i18n="pricing.note">Цены за 1 млн токенов, вход / выход. Официальные — публичные тарифы разработчиков; у нас — цены Kulsh. Экономия считается по средней цене входа и выхода.</p>
   </div>
 </section>
 
@@ -229,7 +188,8 @@
   </div>
 </footer>
 
-<script src="/auth.js"></script>
-<script src="/pages.js"></script>
+<script src="/auth.js?v=20261019"></script>
+<script src="/logos.js?v=20261019"></script>
+<script src="/pages.js?v=20261019"></script>
 </body>
 </html>
