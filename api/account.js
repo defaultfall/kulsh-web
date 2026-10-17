@@ -11,6 +11,7 @@ import {
   getAccount, getPending, lookupIdentity, mergeAccounts, normIdentity, putPending,
   readBalance, readLinkCode, unlinkIdentity,
 } from './_accounts.js';
+import { redeemPromo } from './_promo.js';
 
 export const config = { runtime: 'edge' };
 
@@ -67,7 +68,10 @@ export default async function handler(req) {
 
   if (req.method === 'GET') {
     const [account, keys] = await Promise.all([accountView(env, acct), apiKeys(env, acct)]);
-    return json({ account, keys: keys.map(publicKey) });
+    const tg = account.identities.find((x) => x.provider === 'tg');
+    const topupTag = tg ? `ID${String(tg.identity).slice(3)}` : '';
+    const topupUrl = env.DONATIONALERTS_PAGE || 'https://www.donationalerts.com/r/downfalls';
+    return json({ account, keys: keys.map(publicKey), topup: { tag: topupTag, url: topupUrl } });
   }
   if (req.method !== 'POST') return json({ error: 'method' }, 405);
 
@@ -137,6 +141,12 @@ export default async function handler(req) {
       headers['Set-Cookie'] = setCookie(SESSION_COOKIE, await signSession(session, env.AUTH_SECRET), { req });
     }
     return json({ ok: true, account: await accountView(env, result.newId || acct) }, 200, headers);
+  }
+
+  if (action === 'promo') {
+    const result = await redeemPromo(env, acct, body.code);
+    if (result.error) return json({ error: result.error }, 400);
+    return json({ ok: true, ...result, account: await accountView(env, acct) });
   }
 
   if (action === 'delete') {

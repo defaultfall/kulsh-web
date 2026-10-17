@@ -28,6 +28,12 @@
       tgCodeTitle: 'Вход по коду из бота', tgCodeSub: 'Открой бота, нажми «Привязать аккаунт» и введи код здесь.', tgCodeBtn: 'Войти',
       menuDetails: 'Подробнее', menuAbout: 'О Kulsh', menuPrivacy: 'Политика конфиденциальности', menuPrivacySettings: 'Настройки конфиденциальности',
       usageTitle: 'Дневной лимит', usageResets: 'Сброс', balance: 'Баланс', balanceSoon: 'Пополнить в боте',
+      topup: 'Пополнить', topupTag: 'Тег для пополнения', topupHint: 'Вставь тег в поле «Сообщение» при оплате.',
+      topupLinkTg: 'Привязать Telegram', topupNeedTg: 'Привяжи Telegram, чтобы пополнять баланс.',
+      promoTitle: 'Промокод', promoSub: 'Введи код — он даст деньги на баланс или бонус к следующему пополнению.',
+      promoPh: 'ПРОМОКОД', promoBtn: 'Активировать', promoOkAmount: (v) => `Готово: +${v} ₽ на баланс.`,
+      promoOkBonus: (v) => `Готово: +${v}% к следующему пополнению.`,
+      promoErrors: { not_found: 'Такого промокода нет.', disabled: 'Промокод отключён.', expired: 'Срок действия истёк.', used: 'Ты уже активировал этот код.', limit: 'Лимит активаций исчерпан.', bad_code: 'Код выглядит неправильно.', storage_off: 'Хранилище недоступно.' },
       usageGuest: 'Гостевой лимит', usageLogin: 'Войти, чтобы больше', skillsSoon: 'Каталог скиллов появится здесь совсем скоро.',
       errors: { provider_off: 'Этот способ входа отключён.', state: 'Сессия входа устарела. Попробуй ещё раз.', bad_signature: 'Telegram не подтвердил вход.', failed: 'Не удалось войти. Попробуй ещё раз.', cancelled: 'Вход отменён.' },
     },
@@ -54,6 +60,12 @@
       tgCodeTitle: 'Sign in with a bot code', tgCodeSub: 'Open the bot, press “Link account” and enter the code here.', tgCodeBtn: 'Sign in',
       menuDetails: 'More', menuAbout: 'About Kulsh', menuPrivacy: 'Privacy Policy', menuPrivacySettings: 'Privacy settings',
       usageTitle: 'Daily limit', usageResets: 'Resets', balance: 'Balance', balanceSoon: 'Top up in the bot',
+      topup: 'Top up', topupTag: 'Top-up tag', topupHint: 'Put the tag into the donation message.',
+      topupLinkTg: 'Link Telegram', topupNeedTg: 'Link Telegram to top up your balance.',
+      promoTitle: 'Promo code', promoSub: 'Enter a code to get balance or a bonus for the next top-up.',
+      promoPh: 'PROMO CODE', promoBtn: 'Activate', promoOkAmount: (v) => `Done: +${v} ₽ added to the balance.`,
+      promoOkBonus: (v) => `Done: +${v}% for the next top-up.`,
+      promoErrors: { not_found: 'No such promo code.', disabled: 'This promo code is disabled.', expired: 'This promo code has expired.', used: 'You have already used this code.', limit: 'Activation limit reached.', bad_code: 'The code looks wrong.', storage_off: 'Storage is unavailable.' },
       usageGuest: 'Guest limit', usageLogin: 'Sign in for more', skillsSoon: 'The skills catalog will land here very soon.',
       errors: { provider_off: 'This sign-in method is disabled.', state: 'Sign-in session expired. Try again.', bad_signature: 'Telegram did not confirm the sign-in.', failed: 'Could not sign in. Try again.', cancelled: 'Sign-in cancelled.' },
     },
@@ -159,6 +171,7 @@
 
   let usage = null;
   let account = null;
+  let topup = null;
   const fmtPts = (n) => (Math.round(Number(n) * 10) / 10).toString();
   // Компактный формат токенов: 15000 → «15 тыс.» / «15K».
   function fmtTok(n) {
@@ -196,8 +209,13 @@
       <div class="acct-balance">
         <span class="material-symbols-rounded">account_balance_wallet</span>
         <span>${s.balance}: ${fmtPts((u.balance || 0) / 100)} ₽</span>
-        <span class="acct-soon">${s.balanceSoon}</span>
+        ${topup && topup.tag
+          ? `<a class="acct-topup" href="${esc(topup.url)}" target="_blank" rel="noopener noreferrer">${esc(s.topup)}</a>`
+          : `<button class="acct-topup" type="button" data-act="link">${esc(s.topupLinkTg)}</button>`}
       </div>
+      ${topup && topup.tag
+        ? `<div class="acct-topup-tag"><span>${esc(s.topupTag)}:</span> <code>${esc(topup.tag)}</code><span class="acct-topup-hint">${esc(s.topupHint)}</span></div>`
+        : `<div class="acct-topup-tag"><span class="acct-topup-hint">${esc(s.topupNeedTg)}</span></div>`}
       ${account && account.bonus ? `<div class="acct-bonus">🎁 +${account.bonus}% ${lang() === 'en' ? 'on the next top-up' : 'к следующему пополнению'}</div>` : ''}`;
   }
 
@@ -248,6 +266,9 @@
         <button class="acct-item" type="button" data-act="api">
           <span class="material-symbols-rounded">key</span><span>${s.menuApi}</span>
         </button>
+        <button class="acct-item" type="button" data-act="promo">
+          <span class="material-symbols-rounded">redeem</span><span>${s.promoTitle}</span>
+        </button>
         <a class="acct-item" href="/donate" target="_blank" rel="noopener noreferrer">
           <span class="material-symbols-rounded">favorite</span><span>${s.menuSupport}</span>
         </a>
@@ -295,7 +316,11 @@
       .catch(() => {});
     fetch('/api/account', { cache: 'no-store' })
       .then((r) => r.json())
-      .then((j) => { account = j.account || null; if (menu.classList.contains('is-open')) { renderMenu(); positionMenu(); } })
+      .then((j) => {
+        account = j.account || null;
+        topup = j.topup || null;
+        if (menu.classList.contains('is-open')) { renderMenu(); positionMenu(); }
+      })
       .catch(() => {});
   }
   function closeMenu() { menu.classList.remove('is-open'); menuBackdrop.classList.remove('is-open'); }
@@ -462,6 +487,69 @@
     } catch {}
   }
 
+  // ---------- промокод ----------
+  const promoBackdrop = document.createElement('div');
+  promoBackdrop.className = 'dialog-backdrop';
+  const promoDlg = document.createElement('div');
+  promoDlg.className = 'dialog link-dialog';
+  promoDlg.setAttribute('role', 'dialog');
+  promoDlg.setAttribute('aria-modal', 'true');
+  document.addEventListener('DOMContentLoaded', () => document.body.append(promoBackdrop, promoDlg));
+  promoBackdrop.addEventListener('click', closePromo);
+  function closePromo() {
+    promoBackdrop.classList.remove('is-open');
+    promoDlg.classList.remove('is-open');
+  }
+  function openPromo() {
+    const s = tr();
+    promoDlg.innerHTML = `
+      <div class="dialog-header"><h2>${esc(s.promoTitle)}</h2>
+        <button class="icon-btn" id="promoClose" type="button" aria-label="Close">${ICON.close}</button></div>
+      <div class="dialog-body link-body">
+        <p class="settings-note">${esc(s.promoSub)}</p>
+        <div class="link-code-row">
+          <input class="text-input" id="promoInput" maxlength="24" placeholder="${esc(s.promoPh)}" />
+          <button class="btn btn-filled" id="promoBtn" type="button">${esc(s.promoBtn)}</button>
+        </div>
+        <p class="skills-error" id="promoError" hidden></p>
+        <p class="promo-ok" id="promoOk" hidden></p>
+      </div>`;
+    promoDlg.querySelector('#promoClose').onclick = closePromo;
+    const input = promoDlg.querySelector('#promoInput');
+    const btn = promoDlg.querySelector('#promoBtn');
+    const err = promoDlg.querySelector('#promoError');
+    const ok = promoDlg.querySelector('#promoOk');
+    const submit = async () => {
+      const code = (input.value || '').trim();
+      if (!code) return;
+      btn.disabled = true;
+      err.hidden = true;
+      ok.hidden = true;
+      try {
+        const r = await fetch('/api/account', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'promo', code }),
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || 'fail');
+        account = j.account || account;
+        usage = usage ? { ...usage, balance: j.account ? j.account.balance : usage.balance } : usage;
+        ok.textContent = j.type === 'amount' ? s.promoOkAmount(j.value) : s.promoOkBonus(j.value);
+        ok.hidden = false;
+        input.value = '';
+        setTimeout(() => { closePromo(); openMenu(); }, 1200);
+      } catch (e) {
+        err.textContent = (s.promoErrors && s.promoErrors[e.message]) || s.linkError;
+        err.hidden = false;
+      } finally { btn.disabled = false; }
+    };
+    btn.addEventListener('click', submit);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+    promoBackdrop.classList.add('is-open');
+    promoDlg.classList.add('is-open');
+    setTimeout(() => input.focus(), 50);
+  }
+
   menuBackdrop.addEventListener('click', closeMenu);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
   window.addEventListener('resize', () => { if (menu.classList.contains('is-open')) positionMenu(); });
@@ -482,6 +570,11 @@
     if (act === 'link') {
       closeMenu();
       openLink();
+      return;
+    }
+    if (act === 'promo') {
+      closeMenu();
+      openPromo();
       return;
     }
     if (act === 'settings') {
