@@ -365,3 +365,90 @@
   .acct-menu, .acct-bar > span, .acct-chevron { transition: none; }
   .acct-sub { animation: none; }
 }
+
+/* ==========================================================================
+   СПОСОБЫ ВХОДА И ПРИВЯЗКА АККАУНТА
+   ========================================================================== */
+.acct-bonus {
+  margin: 0 8px 8px; padding: 8px 12px; border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--md-mint) 12%, transparent);
+  color: var(--md-mint); font-size: .78rem; font-weight: 600;
+}
+.acct-links {
+  margin: 2px 8px 8px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--md-on-surface) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--md-outline-variant) 80%, transparent);
+}
+.acct-links-head {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: .74rem; font-weight: 600; letter-spacing: .02em;
+  color: var(--md-on-surface-variant); margin-bottom: 8px;
+}
+.acct-add-link {
+  font-size: .74rem; font-weight: 600; color: var(--md-primary);
+  padding: 4px 8px; border-radius: 999px;
+  background: color-mix(in srgb, var(--md-primary) 12%, transparent);
+}
+.acct-add-link:hover { background: color-mix(in srgb, var(--md-primary) 20%, transparent); }
+.acct-links-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.acct-links-empty { font-size: .78rem; color: var(--md-on-surface-variant); }
+.acct-prov-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 8px; border-radius: 999px;
+  background: color-mix(in srgb, var(--md-on-surface) 7%, transparent);
+  font-size: .76rem; color: var(--md-on-surface);
+}
+.acct-prov-chip svg { width: 16px; height: 16px; }
+.acct-prov-x {
+  width: 18px; height: 18px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--md-on-surface-variant); font-size: 14px; line-height: 1;
+}
+.acct-prov-x:hover { background: color-mix(in srgb, var(--md-error) 20%, transparent); color: var(--md-error); }
+
+.link-dialog { width: min(440px, calc(100vw - 28px)); }
+.link-body { display: flex; flex-direction: column; gap: 14px; }
+.link-providers { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.link-providers .btn { justify-content: flex-start; gap: 10px; height: 44px; }
+.link-providers .btn svg { width: 20px; height: 20px; }
+.link-or {
+  text-align: center; font-size: .74rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--md-on-surface-variant); position: relative;
+}
+.link-or::before, .link-or::after {
+  content: ''; position: absolute; top: 50%; width: calc(50% - 26px); height: 1px;
+  background: var(--md-outline-variant);
+}
+.link-or::before { left: 0; } .link-or::after { right: 0; }
+.link-code-label { font-size: .8rem; font-weight: 600; color: var(--md-on-surface-variant); }
+.link-code-row { display: flex; gap: 8px; }
+.link-code-row .text-input { flex: 1; text-transform: uppercase; letter-spacing: .06em; }
+.link-merge { font-size: .92rem; line-height: 1.55; }
+.link-sum {
+  display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
+  padding: 12px; border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--md-primary) 9%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+.link-sum b { color: var(--md-primary); }
+.link-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.link-actions .btn { min-width: 110px; }
+
+.auth-code {
+  margin: 4px 0 16px; padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--md-on-surface) 4%, transparent);
+  border: 1px solid var(--md-outline-variant);
+}
+.auth-code-title { font-size: .84rem; font-weight: 600; margin-bottom: 4px; }
+.auth-code-sub { font-size: .78rem; color: var(--md-on-surface-variant); margin-bottom: 10px; line-height: 1.45; }
+.auth-code-row { display: flex; gap: 8px; }
+.auth-code-row .text-input { flex: 1; text-transform: uppercase; letter-spacing: .06em; }
+
+@media (max-width: 520px) {
+  .link-code-row, .auth-code-row { flex-direction: column; }
+  .link-actions { flex-direction: column-reverse; }
+  .link-actions .btn { width: 100%; }
+}

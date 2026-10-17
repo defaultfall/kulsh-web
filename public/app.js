@@ -19,6 +19,16 @@
     { id: 'deepseek-v4-pro',       name: 'DeepSeek V4 Pro',       provider: 'neutralbeats', vision: false, mult: 2, icon: 'neurology',  tone: 'sky',   desc: { ru: 'Усиленное рассуждение, без зрения', en: 'Strong reasoning, no vision' } },
     { id: 'glm-5.3-flash',         name: 'GLM 5.3 Flash',         provider: 'neutralbeats', vision: true,  mult: 1, icon: 'bolt',       tone: 'mint',  desc: { ru: 'Быстрая и аккуратная', en: 'Fast and precise' } },
     { id: 'kimi-k3',               name: 'Kimi K3',               provider: 'neutralbeats', vision: true,  mult: 3, icon: 'star',       tone: 'amber', desc: { ru: 'Сильна в длинных текстах', en: 'Strong with long text' } },
+    // ---- Платные модели: списываются с общего баланса (как в боте) ----
+    { id: 'grok-4.7',              name: 'Grok 4.7',              provider: 'neutralbeats', vision: true,  mult: 3, icon: 'bolt',        tone: 'rose',  paid: true, desc: { ru: 'Платная · $0.20 / $1.00 за 1M', en: 'Paid · $0.20 / $1.00 per 1M' } },
+    { id: 'claude-haiku-5-5',      name: 'Claude Haiku 5.5',      provider: 'neutralbeats', vision: true,  mult: 1, icon: 'speed',       tone: 'mint',  desc: { ru: 'Лёгкая и быстрая, бесплатная', en: 'Light and fast, free' } },
+    { id: 'claude-sonnet-5-5',     name: 'Claude Sonnet 5.5',     provider: 'neutralbeats', vision: true,  mult: 3, icon: 'auto_awesome', tone: 'rose', paid: true, desc: { ru: 'Платная · $0.40 / $2.00 за 1M', en: 'Paid · $0.40 / $2.00 per 1M' } },
+    { id: 'claude-opus-5-5',       name: 'Claude Opus 5.5',       provider: 'neutralbeats', vision: true,  mult: 3, icon: 'neurology',   tone: 'rose',  paid: true, desc: { ru: 'Платная · $0.60 / $3.20 за 1M', en: 'Paid · $0.60 / $3.20 per 1M' } },
+    { id: 'claude-fable-5-1',      name: 'Claude Fable 5.1',      provider: 'neutralbeats', vision: true,  mult: 3, icon: 'star',        tone: 'rose',  paid: true, desc: { ru: 'Платная · $1.20 / $6.00 за 1M', en: 'Paid · $1.20 / $6.00 per 1M' } },
+    { id: 'gpt-6-luna',            name: 'GPT-6 Luna',            provider: 'neutralbeats', vision: true,  mult: 2, icon: 'dark_mode',   tone: 'sky',   desc: { ru: 'Тихая и аккуратная, бесплатная', en: 'Quiet and neat, free' } },
+    { id: 'gpt-6.1-sol',           name: 'GPT-6.1 Sol',           provider: 'neutralbeats', vision: true,  mult: 3, icon: 'light_mode',  tone: 'amber', desc: { ru: 'Сильная, бесплатная', en: 'Strong, free' } },
+    { id: 'gpt-6-astra',           name: 'GPT-6 Astra',           provider: 'neutralbeats', vision: true,  mult: 3, icon: 'auto_awesome', tone: 'rose', paid: true, desc: { ru: 'Платная · $0.34 / $1.70 за 1M', en: 'Paid · $0.34 / $1.70 per 1M' } },
+    { id: 'qwen3.8-max-0902',      name: 'Qwen3.8 Max',           provider: 'neutralbeats', vision: true,  mult: 3, icon: 'dragon',      tone: 'mint',  paid: true, desc: { ru: 'Платная · $0.20 / $1.00 за 1M', en: 'Paid · $0.20 / $1.00 per 1M' } },
   ];
 
   // Человекочитаемые названия провайдеров для группировки в списке моделей.
@@ -380,7 +390,7 @@
         opt.innerHTML = `
           <span class="model-option-icon tone-${m.tone || 'mint'}"><span class="material-symbols-rounded">${m.icon}</span></span>
           <span class="model-option-text">
-            <span class="model-option-name">${m.name}</span>
+            <span class="model-option-name">${m.name}${m.paid ? ' 💳' : ''}</span>
             <span class="model-option-desc">${m.desc[lang] || m.desc.ru}</span>
           </span>
           ${locked ? '<span class="lock">' + KA.ICON.lock + '</span>' : (m.id === currentModelId ? '<span class="material-symbols-rounded check">check</span>' : '')}

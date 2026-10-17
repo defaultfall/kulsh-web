@@ -12,9 +12,10 @@
 //   STREAM_BUDGET_MS — сколько стримим после этого (большие файлы кода успевают).
 // Плюс idle-таймаут: если апстрим молчит дольше IDLE_MS — обрываем.
 
-import { GUEST_MODEL, FALLBACK_MODEL, isAllowed, modelInfo } from './_models.js';
+import { GUEST_MODEL, FALLBACK_MODEL, isAllowed, modelInfo, isPaid, costKopecks } from './_models.js';
 import { PROVIDERS, canonicalMessages } from './_providers.js';
 import { guestIdentity, readUsage, hasRoom, charge, estimateTokens } from './_usage.js';
+import { readBalance, chargeBalance } from './_accounts.js';
 
 // Гости: только одна модель, без вложений и кастомизации, короткая история.
 const GUEST_MAX_MESSAGES = 20;
@@ -237,6 +238,17 @@ export async function runChat(req, ctx = {}) {
     return api ? fail(402, msg, 'limit_exceeded') : sseError(msg, usageHeaders);
   }
 
+  // ---- Платные модели: общий баланс с ботом ----
+  let balanceKop = 0;
+  if (!guest && isPaid(selectedModel)) {
+    balanceKop = await readBalance(process.env, user.id);
+    if (balanceKop <= 0) {
+      const msg = `На балансе 0 ₽, а ${selectedInfo ? selectedInfo.label : selectedModel} — платная модель. ` +
+        'Пополни баланс в боте (/balance) или выбери бесплатную модель.';
+      return api ? fail(402, msg, 'balance_empty') : sseError(msg, usageHeaders);
+    }
+  }
+
   const lastUser = Array.isArray(messages) ? [...messages].reverse().find((m) => m && m.role === 'user') : null;
   const newMedia = !!(lastUser && Array.isArray(lastUser.attachments) && lastUser.attachments.some((a) => a && a.data));
   const note = recallNote({ newMedia, recallPass: !!recall, hasOldMedia: !!hasOldMedia });
@@ -296,6 +308,7 @@ export async function runChat(req, ctx = {}) {
   let lastErr = null;
   let activeProvider = null;
   let streamCtrl = null;
+  let answeredModel = selectedModel;
   const tried = [];
 
   outer:
@@ -330,6 +343,7 @@ export async function runChat(req, ctx = {}) {
         clearTimeout(timer);
         if (res.ok && res.body) {
           upstream = res; activeProvider = provider; streamCtrl = ctrl;
+          answeredModel = mdl;
           tried.push({ model: mdl, provider: info.provider, key: `#${ki + 1}`, result: 'ok' });
           break outer;
         }
@@ -513,10 +527,20 @@ export async function runChat(req, ctx = {}) {
         const newUsed = fatal
           ? usage.used
           : await charge(process.env, { ...usageCtx, cost }).catch(() => null);
+        // Деньги списываем только если ответила именно платная модель.
+        let charged = 0;
+        let balance = null;
+        if (!fatal && !guest && isPaid(answeredModel)) {
+          const kop = costKopecks(answeredModel, estInTokens, estOut);
+          const ok = await chargeBalance(process.env, user.id, kop).catch(() => false);
+          if (ok) { charged = kop; balance = Math.max(0, balanceKop - kop); }
+        }
         send({
           done: true,
           truncated: truncated || undefined,
           usage: { used: newUsed, limit: usage.limit, unit: 'tokens', cost },
+          charged: charged || undefined,
+          balance,
         });
       }
       if (total === 0) send({ done: true });

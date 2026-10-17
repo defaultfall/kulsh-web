@@ -6,6 +6,7 @@
 //   POST /api/auth/telegram            → проверка подписи Telegram, выдача сессии
 //   POST /api/auth/logout              → удаление сессии
 import { signSession, readSession, setCookie, getCookie, SESSION_COOKIE } from './_session.js';
+import { dropLinkCode, dropPending, getPending, putPending, readLinkCode, resolveIdentity } from './_accounts.js';
 
 export const config = { runtime: 'edge' };
 
@@ -124,7 +125,65 @@ export default async function handler(req) {
     let data; try { data = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
     if (!(await verifyTelegram(data, env.TELEGRAM_BOT_TOKEN.trim()))) return json({ error: 'bad_signature' }, 401);
     const name = [data.first_name, data.last_name].filter(Boolean).join(' ') || data.username || 'Telegram user';
-    const user = { id: `telegram:${data.id}`, name, avatar: data.photo_url || '', provider: 'telegram', handle: data.username ? `@${data.username}` : '' };
+    const identity = `tg:${data.id}`;
+    if (data.mode === 'link') {
+      const current = await readSession(req, env);
+      if (!current || !current.id) return json({ error: 'auth_required' }, 401);
+      const pending = await putPending(env, {
+        kind: 'link', identity, acct: current.id,
+        profile: { name, avatar: data.photo_url || '', handle: data.username ? `@${data.username}` : '' },
+      });
+      return json({ pending });
+    }
+    const acct = await resolveIdentity(env, identity, {
+      name, avatar: data.photo_url || '', handle: data.username ? `@${data.username}` : '',
+    });
+    const user = { id: acct, name, avatar: data.photo_url || '', provider: 'telegram', handle: data.username ? `@${data.username}` : '', identity };
+    return json({ user }, 200, { 'Set-Cookie': setCookie(SESSION_COOKIE, await signSession(user, env.AUTH_SECRET), { req }) });
+  }
+
+  // Привязка Telegram через код из бота: код создаёт бот командой «привязать аккаунт».
+  // Так работает и там, где виджет Telegram не может доставить подтверждение.
+  if (action === 'telegram_code' && req.method === 'POST') {
+    if (!env.AUTH_SECRET) return json({ error: 'auth_off' }, 400);
+    let data; try { data = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
+    const code = String(data.code || '').trim().toUpperCase();
+    if (!code) return json({ error: 'no_code' }, 400);
+    const link = await readLinkCode(env, code);
+    if (!link || !link.identity) return json({ error: 'bad_code' }, 400);
+    const platform = String(link.platform || '');
+    if (platform !== 'tg' && platform !== 'telegram') return json({ error: 'bad_code' }, 400);
+    const name = String(link.name || (platform === 'tg' ? 'Telegram' : 'Telegram'));
+    const identity = String(link.identity);
+    const token = await putPending(env, {
+      kind: 'login', identity, profile: { name }, code,
+    });
+    return json({
+      ok: true,
+      token,
+      identity,
+      name,
+    });
+  }
+
+  if (action === 'telegram_code_confirm' && req.method === 'POST') {
+    if (!env.AUTH_SECRET) return json({ error: 'auth_off' }, 400);
+    let data; try { data = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
+    const token = String(data.token || '');
+    const pending = await getPending(env, token);
+    if (!pending || !pending.identity) return json({ error: 'expired' }, 400);
+    const identity = String(pending.identity);
+    const acct = await resolveIdentity(env, identity, pending.profile || {});
+    await dropPending(env, token);
+    if (pending.code) await dropLinkCode(env, pending.code);
+    const provider = identity.split(':', 1)[0] === 'ds' ? 'discord' : 'telegram';
+    const user = {
+      id: acct,
+      name: (pending.profile && pending.profile.name) || 'Telegram',
+      avatar: '',
+      provider,
+      handle: '',
+    };
     return json({ user }, 200, { 'Set-Cookie': setCookie(SESSION_COOKIE, await signSession(user, env.AUTH_SECRET), { req }) });
   }
 
@@ -136,22 +195,50 @@ export default async function handler(req) {
 
   if (action === 'start') {
     const state = b64rand();
+    const mode = url.searchParams.get('mode') === 'link' ? 'link' : '';
+    let acct = '';
+    if (mode === 'link') {
+      const current = await readSession(req, env);
+      if (!current || !current.id) {
+        return redirect(withParam(nextFromQuery || '/', 'auth_error', 'login_required'));
+      }
+      acct = current.id;
+    }
     const q = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: 'code', state, ...P.extra });
-    // next храним вместе со state, чтобы вернуть человека на исходную страницу.
-    return redirect(`${P.authUrl}?${q}`, [setCookie(STATE_COOKIE, `${state}|${nextFromQuery}`, { maxAge: 600, req })]);
+    // next и режим храним вместе со state: callback должен знать, куда вернуть человека.
+    const cookie = `${state}|${encodeURIComponent(nextFromQuery)}|${mode}|${encodeURIComponent(acct)}`;
+    return redirect(`${P.authUrl}?${q}`, [setCookie(STATE_COOKIE, cookie, { maxAge: 600, req })]);
   }
 
   if (action === 'callback') {
     const clear = setCookie(STATE_COOKIE, '', { maxAge: 0, req });
-    const [cookieState, cookieNext] = (getCookie(req, STATE_COOKIE) || '').split('|');
-    const next = safeNext(cookieNext);
+    const parts = (getCookie(req, STATE_COOKIE) || '').split('|');
+    const cookieState = parts[0] || '';
+    let next = '';
+    let mode = '';
+    let acct = '';
+    try { next = safeNext(decodeURIComponent(parts[1] || '')); } catch { next = ''; }
+    mode = parts[2] === 'link' ? 'link' : '';
+    try { acct = decodeURIComponent(parts[3] || ''); } catch { acct = ''; }
     const code = url.searchParams.get('code');
     if (!code || !url.searchParams.get('state') || url.searchParams.get('state') !== cookieState) {
       return redirect(withParam(next || '/', 'auth_error', 'state'), [clear]);
     }
     try {
       const user = await P.profile(code, redirectUri, clientId, clientSecret);
-      return redirect(next || '/', [clear, setCookie(SESSION_COOKIE, await signSession(user, env.AUTH_SECRET), { req })]);
+      if (mode === 'link') {
+        if (!acct) return redirect(withParam(next || '/', 'auth_error', 'login_required'), [clear]);
+        const token = await putPending(env, {
+          kind: 'link', identity: user.id, acct,
+          profile: { name: user.name, avatar: user.avatar, handle: user.handle },
+        });
+        return redirect(withParam(next || '/', 'link', token), [clear]);
+      }
+      const accountId = await resolveIdentity(env, user.id, {
+        name: user.name, avatar: user.avatar, handle: user.handle,
+      });
+      const session = { ...user, id: accountId, identity: user.id };
+      return redirect(next || '/', [clear, setCookie(SESSION_COOKIE, await signSession(session, env.AUTH_SECRET), { req })]);
     } catch (e) {
       return redirect(withParam(next || '/', 'auth_error', e.message || 'failed'), [clear]);
     }

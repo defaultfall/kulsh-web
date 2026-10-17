@@ -16,8 +16,18 @@
       cItems: ['Чаты и настройки сохраняются в твоём аккаунте и доступны на всех устройствах', 'Сообщения отправляются нейросети Gemini для ответа', 'При входе мы получаем только имя и аватар — без почты и паролей', 'Выйти и очистить данные можно в любой момент'],
       cText: 'Нажимая «Принять», ты соглашаешься с', cAccept: 'Принять', cLater: 'Не сейчас', lockedModel: 'Нужен вход', lockedFeature: 'Эта функция доступна после входа.',
       menuSettings: 'Настройки', menuLang: 'Язык', menuSkills: 'Скиллы', menuSupport: 'Поддержать', menuApi: 'API',
+      menuLinks: 'Способы входа', menuLinkAdd: 'Привязать', menuLinkEmpty: 'Пока только этот способ',
+      linkTitle: 'Привязать аккаунт', linkSub: 'Выбери способ входа или введи код из бота. Баланс, usage и API-ключи станут общими.',
+      linkCode: 'Код из бота', linkCodePh: 'НАПРИМЕР ABCD1234', linkCodeBtn: 'Привязать по коду',
+      linkOr: 'или', linkGoogle: 'Привязать Google', linkGithub: 'Привязать GitHub', linkTelegram: 'Привязать Telegram',
+      linkMergeTitle: 'Слияние аккаунтов', linkMergeText: (a, b, c) => `У этого способа входа уже есть аккаунт с балансом ${a}. После привязки балансы сложатся: ${b} + ${c}. Продолжить?`,
+      linkMergeOk: 'Слить и привязать', linkOk: 'Привязать', linkCancel: 'Отмена',
+      linkDone: 'Готово. Способы входа объединены.', linkAlready: 'Этот способ уже привязан.',
+      linkBad: 'Код не подошёл или истёк. Создай новый в боте.', unlinkDone: 'Способ входа отвязан.',
+      unlinkLast: 'Нельзя отвязать единственный способ входа.', linkError: 'Не получилось привязать. Попробуй ещё раз.',
+      tgCodeTitle: 'Вход по коду из бота', tgCodeSub: 'Открой бота, нажми «Привязать аккаунт» и введи код здесь.', tgCodeBtn: 'Войти',
       menuDetails: 'Подробнее', menuAbout: 'О Kulsh', menuPrivacy: 'Политика конфиденциальности', menuPrivacySettings: 'Настройки конфиденциальности',
-      usageTitle: 'Дневной лимит', usageResets: 'Сброс', balance: 'Баланс', balanceSoon: 'Пополнение скоро',
+      usageTitle: 'Дневной лимит', usageResets: 'Сброс', balance: 'Баланс', balanceSoon: 'Пополнить в боте',
       usageGuest: 'Гостевой лимит', usageLogin: 'Войти, чтобы больше', skillsSoon: 'Каталог скиллов появится здесь совсем скоро.',
       errors: { provider_off: 'Этот способ входа отключён.', state: 'Сессия входа устарела. Попробуй ещё раз.', bad_signature: 'Telegram не подтвердил вход.', failed: 'Не удалось войти. Попробуй ещё раз.', cancelled: 'Вход отменён.' },
     },
@@ -32,8 +42,18 @@
       cItems: ['Chats and settings are saved to your account and available on all your devices', 'Messages are sent to Gemini to generate replies', 'Signing in gives us only your name and avatar — no email or passwords', 'You can sign out and clear your data at any time'],
       cText: 'By tapping “Accept” you agree to the', cAccept: 'Accept', cLater: 'Not now', lockedModel: 'Sign-in required', lockedFeature: 'This feature is available after signing in.',
       menuSettings: 'Settings', menuLang: 'Language', menuSkills: 'Skills', menuSupport: 'Support', menuApi: 'API',
+      menuLinks: 'Sign-in methods', menuLinkAdd: 'Link', menuLinkEmpty: 'Only this method so far',
+      linkTitle: 'Link account', linkSub: 'Pick a sign-in method or enter a code from the bot. Balance, usage and API keys become shared.',
+      linkCode: 'Code from the bot', linkCodePh: 'E.G. ABCD1234', linkCodeBtn: 'Link with code',
+      linkOr: 'or', linkGoogle: 'Link Google', linkGithub: 'Link GitHub', linkTelegram: 'Link Telegram',
+      linkMergeTitle: 'Merge accounts', linkMergeText: (a, b, c) => `This sign-in method already has an account with ${a}. After linking the balances are summed: ${b} + ${c}. Continue?`,
+      linkMergeOk: 'Merge and link', linkOk: 'Link', linkCancel: 'Cancel',
+      linkDone: 'Done. Sign-in methods are merged.', linkAlready: 'This method is already linked.',
+      linkBad: 'The code is wrong or expired. Create a new one in the bot.', unlinkDone: 'Sign-in method unlinked.',
+      unlinkLast: 'You cannot unlink the only sign-in method.', linkError: 'Could not link. Try again.',
+      tgCodeTitle: 'Sign in with a bot code', tgCodeSub: 'Open the bot, press “Link account” and enter the code here.', tgCodeBtn: 'Sign in',
       menuDetails: 'More', menuAbout: 'About Kulsh', menuPrivacy: 'Privacy Policy', menuPrivacySettings: 'Privacy settings',
-      usageTitle: 'Daily limit', usageResets: 'Resets', balance: 'Balance', balanceSoon: 'Top-up coming soon',
+      usageTitle: 'Daily limit', usageResets: 'Resets', balance: 'Balance', balanceSoon: 'Top up in the bot',
       usageGuest: 'Guest limit', usageLogin: 'Sign in for more', skillsSoon: 'The skills catalog will land here very soon.',
       errors: { provider_off: 'This sign-in method is disabled.', state: 'Sign-in session expired. Try again.', bad_signature: 'Telegram did not confirm the sign-in.', failed: 'Could not sign in. Try again.', cancelled: 'Sign-in cancelled.' },
     },
@@ -138,6 +158,7 @@
   menuBackdrop.className = 'acct-backdrop';
 
   let usage = null;
+  let account = null;
   const fmtPts = (n) => (Math.round(Number(n) * 10) / 10).toString();
   // Компактный формат токенов: 15000 → «15 тыс.» / «15K».
   function fmtTok(n) {
@@ -176,15 +197,24 @@
         <span class="material-symbols-rounded">account_balance_wallet</span>
         <span>${s.balance}: ${fmtPts((u.balance || 0) / 100)} ₽</span>
         <span class="acct-soon">${s.balanceSoon}</span>
-      </div>`;
+      </div>
+      ${account && account.bonus ? `<div class="acct-bonus">🎁 +${account.bonus}% ${lang() === 'en' ? 'on the next top-up' : 'к следующему пополнению'}</div>` : ''}`;
   }
 
   function renderMenu() {
     const s = tr();
     const u = A.user || {};
-    const PROV_NAME = { google: 'Google', github: 'GitHub', telegram: 'Telegram' };
+    const PROV_NAME = { google: 'Google', github: 'GitHub', telegram: 'Telegram', tg: 'Telegram', ds: 'Discord' };
     const prov = PROV_NAME[u.provider] || ((u.provider || '')[0] ? u.provider[0].toUpperCase() + u.provider.slice(1) : '');
     const handle = u.handle || '';
+    const ids = (account && account.identities) || [];
+    const provIcon = (p) => ICON[p === 'tg' ? 'telegram' : p] || '<span class="material-symbols-rounded">person</span>';
+    const links = ids.map((x) => `
+      <span class="acct-prov-chip">
+        ${provIcon(x.provider)}
+        <span>${esc(PROV_NAME[x.provider] || x.provider)}</span>
+        ${ids.length > 1 ? `<button type="button" class="acct-prov-x" data-unlink="${esc(x.identity)}" aria-label="Отвязать">×</button>` : ''}
+      </span>`).join('');
     menu.innerHTML = `
       <div class="acct-head">
         <span class="acct-avatar">${avatarHTML(u, 'acct-av')}</span>
@@ -195,6 +225,12 @@
         ${prov ? `<span class="acct-provider">${ICON[u.provider] || ''}<span>${esc(prov)}</span></span>` : ''}
       </div>
       ${usageHTML()}
+      <div class="acct-links">
+        <div class="acct-links-head"><span>${s.menuLinks}</span>
+          <button type="button" class="acct-add-link" data-act="link">+ ${s.menuLinkAdd}</button>
+        </div>
+        <div class="acct-links-row">${links || `<span class="acct-links-empty">${s.menuLinkEmpty}</span>`}</div>
+      </div>
       <div class="acct-list">
         <button class="acct-item" type="button" data-act="settings">
           <span class="material-symbols-rounded">settings</span><span>${s.menuSettings}</span>
@@ -252,14 +288,179 @@
     menuBackdrop.classList.add('is-open');
     menu.classList.add('is-open');
     positionMenu();
-    // Подтягиваем актуальный usage.
+    // Подтягиваем актуальный usage и привязки.
     fetch('/api/usage', { cache: 'no-store' })
       .then((r) => r.json())
       .then((j) => { usage = j; if (menu.classList.contains('is-open')) { renderMenu(); positionMenu(); } })
       .catch(() => {});
+    fetch('/api/account', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((j) => { account = j.account || null; if (menu.classList.contains('is-open')) { renderMenu(); positionMenu(); } })
+      .catch(() => {});
   }
   function closeMenu() { menu.classList.remove('is-open'); menuBackdrop.classList.remove('is-open'); }
   function toggleMenu() { menu.classList.contains('is-open') ? closeMenu() : openMenu(); }
+
+  // ============================================================
+  // ПРИВЯЗКА СПОСОБОВ ВХОДА
+  // ============================================================
+  const linkBackdrop = document.createElement('div');
+  linkBackdrop.className = 'dialog-backdrop';
+  const linkDlg = document.createElement('div');
+  linkDlg.className = 'dialog link-dialog';
+  linkDlg.setAttribute('role', 'dialog');
+  linkDlg.setAttribute('aria-modal', 'true');
+  document.addEventListener('DOMContentLoaded', () => document.body.append(linkBackdrop, linkDlg));
+  linkBackdrop.addEventListener('click', closeLink);
+
+  function closeLink() {
+    linkBackdrop.classList.remove('is-open');
+    linkDlg.classList.remove('is-open');
+  }
+
+  function openLink() {
+    const s = tr();
+    linkDlg.innerHTML = `
+      <div class="dialog-header"><h2>${esc(s.linkTitle)}</h2>
+        <button class="icon-btn" id="linkClose" type="button" aria-label="Close">${ICON.close}</button></div>
+      <div class="dialog-body link-body">
+        <p class="settings-note">${esc(s.linkSub)}</p>
+        <div class="link-providers">
+          <button class="btn btn-tonal" type="button" data-link-p="google">${ICON.google}<span>${esc(s.linkGoogle)}</span></button>
+          <button class="btn btn-tonal" type="button" data-link-p="github">${ICON.github}<span>${esc(s.linkGithub)}</span></button>
+          <button class="btn btn-tonal" type="button" data-link-p="telegram">${ICON.telegram}<span>${esc(s.linkTelegram)}</span></button>
+        </div>
+        <div class="link-or">${esc(s.linkOr)}</div>
+        <label class="link-code-label">${esc(s.linkCode)}</label>
+        <div class="link-code-row">
+          <input class="text-input" id="linkCodeInput" maxlength="24" placeholder="${esc(s.linkCodePh)}" />
+          <button class="btn btn-filled" id="linkCodeBtn" type="button">${esc(s.linkCodeBtn)}</button>
+        </div>
+        <p class="skills-error" id="linkError" hidden></p>
+      </div>`;
+    linkDlg.querySelector('#linkClose').onclick = closeLink;
+    linkDlg.querySelectorAll('[data-link-p]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const p = b.dataset.linkP;
+        if (p === 'telegram') return linkTelegram();
+        const next = location.pathname + location.search;
+        location.href = `/api/auth/start/${p}?mode=link&next=${encodeURIComponent(next)}`;
+      });
+    });
+    const go = linkDlg.querySelector('#linkCodeBtn');
+    const input = linkDlg.querySelector('#linkCodeInput');
+    go.addEventListener('click', async () => {
+      const code = (input.value || '').trim();
+      if (!code) return;
+      go.disabled = true;
+      try {
+        const r = await fetch('/api/account', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'link_code_preview', code }),
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || 'fail');
+        if (j.status === 'already') { showLinkError(tr().linkAlready); return; }
+        closeLink();
+        confirmLink(j);
+      } catch {
+        showLinkError(tr().linkBad);
+      } finally { go.disabled = false; }
+    });
+    linkBackdrop.classList.add('is-open');
+    linkDlg.classList.add('is-open');
+    setTimeout(() => input.focus(), 50);
+  }
+
+  function showLinkError(msg) {
+    const e = linkDlg.querySelector('#linkError');
+    if (!e) return;
+    e.textContent = msg;
+    e.hidden = false;
+  }
+
+  async function linkTelegram() {
+    try { await loadTelegram(); } catch { return showLinkError(tr().errors.failed); }
+    if (!A.telegramBotId) return showLinkError(tr().errors.failed);
+    if (!(window.Telegram && window.Telegram.Login)) return showLinkError(tr().errors.failed);
+    window.Telegram.Login.auth({ bot_id: Number(A.telegramBotId), lang: lang() }, async (data) => {
+      if (!data) return showLinkError(tr().errors.cancelled);
+      try {
+        const r = await fetch('/api/auth/telegram', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...data, mode: 'link' }),
+        });
+        const j = await r.json();
+        if (!r.ok || !j.pending) throw new Error(j.error || 'fail');
+        const p = await fetch('/api/account', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'link_token_preview', token: j.pending }),
+        }).then((x) => x.json());
+        if (p.status === 'already') return showLinkError(tr().linkAlready);
+        closeLink();
+        confirmLink(p);
+      } catch { showLinkError(tr().errors.failed); }
+    });
+  }
+
+  function confirmLink(preview) {
+    const s = tr();
+    const merge = !!preview.merge;
+    const b = preview.balances || { current: 0, incoming: 0, total: 0 };
+    const money = (kop) => fmtPts((kop || 0) / 100) + ' ₽';
+    linkDlg.innerHTML = `
+      <div class="dialog-header"><h2>${esc(merge ? s.linkMergeTitle : s.linkTitle)}</h2>
+        <button class="icon-btn" id="linkClose" type="button" aria-label="Close">${ICON.close}</button></div>
+      <div class="dialog-body link-body">
+        ${merge
+          ? `<p class="link-merge">${esc(s.linkMergeText(money(b.incoming), money(b.current), money(b.total)))}</p>
+             <div class="link-sum"><span>${money(b.current)}</span><span>+</span><span>${money(b.incoming)}</span><span>=</span><b>${money(b.total)}</b></div>`
+          : `<p class="settings-note">${esc(s.linkSub)}</p>`}
+        <div class="link-actions">
+          <button class="btn" type="button" id="linkCancel">${esc(s.linkCancel)}</button>
+          <button class="btn btn-filled" type="button" id="linkConfirm">${esc(merge ? s.linkMergeOk : s.linkOk)}</button>
+        </div>
+        <p class="skills-error" id="linkError" hidden></p>
+      </div>`;
+    linkDlg.querySelector('#linkClose').onclick = closeLink;
+    linkDlg.querySelector('#linkCancel').onclick = closeLink;
+    linkDlg.querySelector('#linkConfirm').onclick = async (e) => {
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      try {
+        const r = await fetch('/api/account', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'link_confirm', token: preview.token }),
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || 'fail');
+        account = j.account || account;
+        closeLink();
+        openMenu();
+      } catch {
+        showLinkError(tr().linkError);
+        btn.disabled = false;
+      }
+    };
+    linkBackdrop.classList.add('is-open');
+    linkDlg.classList.add('is-open');
+  }
+
+  async function unlink(identity) {
+    try {
+      const r = await fetch('/api/account', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'unlink', identity }),
+      });
+      const j = await r.json();
+      if (!r.ok) {
+        if (j.error === 'last_method') return;
+        return;
+      }
+      account = j.account || account;
+      renderMenu(); positionMenu();
+    } catch {}
+  }
 
   menuBackdrop.addEventListener('click', closeMenu);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
@@ -273,9 +474,16 @@
       renderMenu(); renderAccountBtn();
       return;
     }
+    const un = e.target.closest('[data-unlink]');
+    if (un) { await unlink(un.dataset.unlink); return; }
     const item = e.target.closest('[data-act]');
     if (!item) return;
     const act = item.dataset.act;
+    if (act === 'link') {
+      closeMenu();
+      openLink();
+      return;
+    }
     if (act === 'settings') {
       closeMenu();
       if (document.getElementById('settingsDialog')) window.dispatchEvent(new CustomEvent('kulsh-open-settings'));
@@ -316,6 +524,15 @@
       h += `<div class="auth-hero"><img class="auth-logo" src="/assets/logo.png" alt=""><h2>${s.title}</h2><p>${s.sub}</p></div>`;
       if (notice) h += `<div class="auth-note">${esc(notice)}</div>`;
       h += `<div class="auth-buttons">${on.map((k) => `<button type="button" class="auth-btn auth-${k}" data-p="${k}">${ICON[k]}<span>${s[k]}</span></button>`).join('') || `<div class="auth-note">${s.none}</div>`}</div>
+        <div class="auth-code">
+          <div class="auth-code-title">${esc(s.tgCodeTitle)}</div>
+          <p class="auth-code-sub">${esc(s.tgCodeSub)}</p>
+          <div class="auth-code-row">
+            <input class="text-input" id="authCodeInput" maxlength="24" placeholder="${esc(s.linkCodePh)}" />
+            <button class="btn btn-tonal" id="authCodeBtn" type="button">${esc(s.tgCodeBtn)}</button>
+          </div>
+          <p class="skills-error" id="authCodeError" hidden></p>
+        </div>
         <div class="auth-perks"><b>${s.perksTitle}</b>${s.perks.map((x) => `<div>${ICON.check}<span>${x}</span></div>`).join('')}</div>
         <div class="auth-guest">${ICON.lock}<span>${s.guest}</span></div>`;
     }
@@ -324,6 +541,34 @@
     const lo = dlg.querySelector('#authLogout');
     if (lo) lo.onclick = async () => { try { if (window.KulshSync) await window.KulshSync.onLogout(); } catch {} try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {} A.user = null; store.set(USER_KEY, null); changed(); close(); };
     dlg.querySelectorAll('.auth-btn').forEach((b) => b.addEventListener('click', () => signIn(b.dataset.p, b)));
+    const codeBtn = dlg.querySelector('#authCodeBtn');
+    if (codeBtn) {
+      const codeInput = dlg.querySelector('#authCodeInput');
+      const codeErr = dlg.querySelector('#authCodeError');
+      const fail = (msg) => { if (codeErr) { codeErr.textContent = msg; codeErr.hidden = false; } };
+      codeBtn.addEventListener('click', async () => {
+        const code = (codeInput.value || '').trim();
+        if (!code) return;
+        codeBtn.disabled = true;
+        try {
+          const r = await fetch('/api/auth/telegram_code', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code }),
+          });
+          const j = await r.json();
+          if (!r.ok) throw new Error(j.error || 'fail');
+          const r2 = await fetch('/api/auth/telegram_code_confirm', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: j.token }),
+          });
+          const j2 = await r2.json();
+          if (!r2.ok || !j2.user) throw new Error(j2.error || 'fail');
+          A.user = j2.user; store.set(USER_KEY, JSON.stringify(j2.user)); changed(); close();
+        } catch {
+          fail(tr().linkBad);
+        } finally { codeBtn.disabled = false; }
+      });
+    }
     renderAccountBtn();
   }
 
@@ -360,7 +605,7 @@
     if (!A.telegramBotId) return open(tr().errors.failed);
     btn.classList.add('is-busy');
     try {
-      window.Telegram.Login.auth({ bot_id: Number(A.telegramBotId), request_access: 'write', lang: lang() }, async (data) => {
+      window.Telegram.Login.auth({ bot_id: Number(A.telegramBotId), lang: lang() }, async (data) => {
         btn.classList.remove('is-busy');
         if (!data) return open(tr().errors.cancelled);
         try {
@@ -417,11 +662,24 @@
     }).catch(() => {}),
     new Promise((r) => setTimeout(r, 2500)),
   ]).then(() => {
-    const err = new URLSearchParams(location.search).get('auth_error');
+    const params = new URLSearchParams(location.search);
+    const err = params.get('auth_error');
     if (err) {
       history.replaceState(null, '', location.pathname);
       document.addEventListener('DOMContentLoaded', () => open(tr().errors[err] || tr().errors.failed));
       if (document.readyState !== 'loading') open(tr().errors[err] || tr().errors.failed);
+    }
+    const linkToken = params.get('link');
+    if (linkToken && A.user) {
+      history.replaceState(null, '', location.pathname);
+      fetch('/api/account', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'link_token_preview', token: linkToken }),
+      }).then((r) => r.json()).then((j) => {
+        if (j && j.status && j.status !== 'already') confirmLink(j);
+      }).catch(() => {});
+    } else if (linkToken) {
+      history.replaceState(null, '', location.pathname);
     }
     document.documentElement.dataset.guest = A.user ? 'off' : 'on';
     const fire = () => { renderAccountBtn(); if (!dlg.classList.contains('is-open')) render(); window.dispatchEvent(new CustomEvent('kulsh-auth')); };
