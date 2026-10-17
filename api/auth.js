@@ -6,7 +6,7 @@
 //   POST /api/auth/telegram            → проверка подписи Telegram, выдача сессии
 //   POST /api/auth/logout              → удаление сессии
 import { signSession, readSession, setCookie, getCookie, SESSION_COOKIE } from './_session.js';
-import { dropLinkCode, dropPending, getPending, putPending, readLinkCode, resolveIdentity } from './_accounts.js';
+import { dropLinkCode, dropPending, getPending, normIdentity, putPending, readLinkCode, resolveIdentity } from './_accounts.js';
 
 export const config = { runtime: 'edge' };
 
@@ -123,14 +123,17 @@ export default async function handler(req) {
   if (action === 'telegram' && req.method === 'POST') {
     if (!tgOn(env)) return json({ error: 'telegram_off' }, 400);
     let data; try { data = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
+    // Режим привязки — наш собственный флаг, в подпись Telegram он не входит.
+    const mode = data && data.mode === 'link' ? 'link' : '';
+    if (data) delete data.mode;
     if (!(await verifyTelegram(data, env.TELEGRAM_BOT_TOKEN.trim()))) return json({ error: 'bad_signature' }, 401);
     const name = [data.first_name, data.last_name].filter(Boolean).join(' ') || data.username || 'Telegram user';
     const identity = `tg:${data.id}`;
-    if (data.mode === 'link') {
+    if (mode === 'link') {
       const current = await readSession(req, env);
       if (!current || !current.id) return json({ error: 'auth_required' }, 401);
       const pending = await putPending(env, {
-        kind: 'link', identity, acct: current.id,
+        kind: 'link', identity, acct: normIdentity(current.id),
         profile: { name, avatar: data.photo_url || '', handle: data.username ? `@${data.username}` : '' },
       });
       return json({ pending });
@@ -202,7 +205,7 @@ export default async function handler(req) {
       if (!current || !current.id) {
         return redirect(withParam(nextFromQuery || '/', 'auth_error', 'login_required'));
       }
-      acct = current.id;
+      acct = normIdentity(current.id);
     }
     const q = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: 'code', state, ...P.extra });
     // next и режим храним вместе со state: callback должен знать, куда вернуть человека.

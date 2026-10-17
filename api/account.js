@@ -8,8 +8,8 @@
 import { readSession, setCookie, signSession, SESSION_COOKIE } from './_session.js';
 import {
   accountView, apiKeys, attachIdentity, deleteAccount, dropLinkCode, dropPending,
-  getAccount, getPending, lookupIdentity, mergeAccounts, putPending, readBalance,
-  readLinkCode, unlinkIdentity,
+  getAccount, getPending, lookupIdentity, mergeAccounts, normIdentity, putPending,
+  readBalance, readLinkCode, unlinkIdentity,
 } from './_accounts.js';
 
 export const config = { runtime: 'edge' };
@@ -63,7 +63,7 @@ export default async function handler(req) {
   const env = process.env;
   const user = await readSession(req, env);
   if (!user || !user.id) return json({ error: 'auth_required' }, 401);
-  const acct = user.id;
+  const acct = normIdentity(user.id);
 
   if (req.method === 'GET') {
     const [account, keys] = await Promise.all([accountView(env, acct), apiKeys(env, acct)]);

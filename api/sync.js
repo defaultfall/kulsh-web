@@ -7,6 +7,7 @@
 //   POST /api/sync ← { chats:[...], deleted:{id:ts}, settings?, settingsAt? }
 import { readSession } from './_session.js';
 import { backend, pipeline } from './_store.js';
+import { normIdentity } from './_accounts.js';
 
 export const config = { runtime: 'edge' };
 
@@ -33,7 +34,7 @@ export default async function handler(req) {
   if (!b) return json({ enabled: false });
   const user = await readSession(req, env);
   if (!user || !user.id) return json({ error: 'unauthorized' }, 401);
-  const base = `kulsh:u:${user.id}`;
+  const base = `kulsh:u:${normIdentity(user.id)}`;
   const CH = `${base}:chats`, META = `${base}:meta`;
 
   try {

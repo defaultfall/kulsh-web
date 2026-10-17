@@ -13,6 +13,7 @@
 
 import { getCookie, setCookie, signValue, readValue } from './_session.js';
 import { backend, pipeline } from './_store.js';
+import { normIdentity } from './_accounts.js';
 
 export const GUEST_TOKEN_LIMIT = 15000;    // токенов в сутки для гостя
 export const USER_TOKEN_LIMIT = 100000;    // токенов в сутки для залогиненного
@@ -55,6 +56,7 @@ export async function guestIdentity(req, env = process.env) {
 // чтобы сайт работал как раньше (только с локальной историей).
 export async function readUsage(env, { kind, id }) {
   const limit = limitFor(kind);
+  if (kind === 'user') id = normIdentity(id);
   const base = { used: 0, limit, unit: 'tokens', resetsAt: resetsAt(), balance: 0, guest: kind === 'guest', enabled: false };
   const b = backend(env);
   if (!b || !id) return base;
@@ -82,6 +84,7 @@ export function hasRoom(usage, cost) {
 export async function charge(env, { kind, id, cost }) {
   const b = backend(env);
   if (!b || !id) return null;
+  if (kind === 'user') id = normIdentity(id);
   const day = todayKey();
   const key = usageKey(kind, id, day);
   const amount = Math.max(0, Math.round(cost));

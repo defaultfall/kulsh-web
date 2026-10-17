@@ -6,6 +6,7 @@
 //   DELETE /api/keys?id=...     → { ok: true }
 import { readSession } from './_session.js';
 import { listApiKeys, createApiKey, revokeApiKey } from './_apikeys.js';
+import { normIdentity } from './_accounts.js';
 
 export const config = { runtime: 'edge' };
 
@@ -19,15 +20,16 @@ export default async function handler(req) {
   const env = process.env;
   const user = await readSession(req, env);
   if (!user || !user.id) return json({ error: 'auth_required' }, 401);
+  const userId = normIdentity(user.id);
 
   try {
     if (req.method === 'GET') {
-      return json(await listApiKeys(env, user.id));
+      return json(await listApiKeys(env, userId));
     }
     if (req.method === 'POST') {
       let body;
       try { body = await req.json(); } catch { body = {}; }
-      const r = await createApiKey(env, user.id, body && body.name);
+      const r = await createApiKey(env, userId, body && body.name);
       if (r.error === 'limit') return json({ error: 'limit' }, 400);
       if (r.error) return json({ error: r.error }, 500);
       return json(r);
@@ -35,7 +37,7 @@ export default async function handler(req) {
     if (req.method === 'DELETE') {
       const id = new URL(req.url).searchParams.get('id') || '';
       if (!id) return json({ error: 'no_id' }, 400);
-      const r = await revokeApiKey(env, user.id, id);
+      const r = await revokeApiKey(env, userId, id);
       if (r.error) return json({ error: r.error }, 500);
       return json({ ok: true });
     }

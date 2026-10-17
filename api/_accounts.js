@@ -40,6 +40,12 @@ const now = () => Date.now();
 const today = () => new Date().toISOString().slice(0, 10);
 const num = (v) => Number(v) || 0;
 
+// Старые сессии писали Telegram как `telegram:<id>`, бот и новый сайт — `tg:<id>`.
+export const normIdentity = (ident) => {
+  const s = String(ident || '');
+  return s.startsWith('telegram:') ? `tg:${s.slice(9)}` : s;
+};
+
 function parse(raw, fallback) {
   if (!raw) return fallback;
   try { return JSON.parse(raw); } catch { return fallback; }
@@ -48,7 +54,7 @@ function parse(raw, fallback) {
 export async function follow(env, acct) {
   const b = backend(env);
   if (!b || !acct) return acct;
-  let id = String(acct);
+  let id = normIdentity(acct);
   for (let i = 0; i < 4; i++) {
     const [next] = await pipeline(b, [['GET', K.merged(id)]]);
     if (!next) return id;
@@ -83,13 +89,14 @@ async function saveAccount(env, rec) {
 export async function lookupIdentity(env, identity) {
   const b = backend(env);
   if (!b) return null;
-  const [raw] = await pipeline(b, [['GET', K.ident(identity)]]);
+  const [raw] = await pipeline(b, [['GET', K.ident(normIdentity(identity))]]);
   if (!raw) return null;
   return follow(env, String(raw));
 }
 
 export async function resolveIdentity(env, identity, profile = {}) {
   const b = backend(env);
+  identity = normIdentity(identity);
   if (!b) return identity;
   let acct = (await lookupIdentity(env, identity)) || '';
   if (!acct) {
@@ -112,6 +119,7 @@ export async function resolveIdentity(env, identity, profile = {}) {
 export async function attachIdentity(env, identity, acct, profile = {}) {
   const b = backend(env);
   if (!b) return acct;
+  identity = normIdentity(identity);
   const rec = await getAccount(env, acct);
   if (!rec.ids.includes(identity)) rec.ids.push(identity);
   const provider = providerOf(identity);
@@ -268,6 +276,7 @@ export async function mergeAccounts(env, srcRaw, dstRaw) {
 export async function unlinkIdentity(env, acct, identity) {
   const b = backend(env);
   if (!b) return { error: 'storage_off' };
+  identity = normIdentity(identity);
   const rec = await getAccount(env, acct);
   if (!rec.ids.includes(identity)) return { error: 'not_linked' };
   if (rec.ids.length <= 1) return { error: 'last' };
