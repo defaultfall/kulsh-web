@@ -216,7 +216,7 @@ export async function mergeAccounts(env, srcRaw, dstRaw) {
   if (!b || !src || !dst) return { merged: false };
   if (src === dst) return { merged: false, balance: await readBalance(env, dst) };
 
-  const [sBal, dBal, sTop, dTop, sCnt, dCnt, sBonus, dBonus, sUsed, dUsed, sKeysRaw, dKeysRaw, sRecRaw, dRecRaw] =
+  const [sBal, dBal, sTop, dTop, sCnt, dCnt, sBonus, dBonus, sUsed, dUsed, sKeysRaw, dKeysRaw, sRecRaw, dRecRaw, sChatsRaw, dChatsRaw, sMetaRaw, dMetaRaw] =
     await pipeline(b, [
       ['GET', K.balance(src)], ['GET', K.balance(dst)],
       ['GET', K.topup(src)], ['GET', K.topup(dst)],
@@ -225,7 +225,24 @@ export async function mergeAccounts(env, srcRaw, dstRaw) {
       ['GET', K.usage(src, today())], ['GET', K.usage(dst, today())],
       ['GET', K.keys(src)], ['GET', K.keys(dst)],
       ['GET', K.acct(src)], ['GET', K.acct(dst)],
+      ['HGETALL', `kulsh:u:${src}:chats`], ['HGETALL', `kulsh:u:${dst}:chats`],
+      ['HGETALL', `kulsh:u:${src}:meta`], ['HGETALL', `kulsh:u:${dst}:meta`],
     ]);
+
+  // Чаты и настройки: переносим то, чего нет у целевого аккаунта.
+  const flat = (raw) => {
+    if (!raw) return {};
+    if (Array.isArray(raw)) {
+      const o = {};
+      for (let i = 0; i < raw.length; i += 2) o[raw[i]] = raw[i + 1];
+      return o;
+    }
+    return typeof raw === 'object' ? raw : {};
+  };
+  const sChats = flat(sChatsRaw);
+  const dChats = flat(dChatsRaw);
+  const sMeta = flat(sMetaRaw);
+  const dMeta = flat(dMetaRaw);
 
   const sKeys = parse(sKeysRaw, []);
   const dKeys = parse(dKeysRaw, []);
@@ -269,8 +286,29 @@ export async function mergeAccounts(env, srcRaw, dstRaw) {
   for (const key of sKeys) {
     if (key && key.hash) cmds.push(['SET', `kulsh:key:${key.hash}`, dst]);
   }
+
+  // Переносим чаты: у целевого они приоритетнее, чужие id не перетираем.
+  let movedChats = 0;
+  for (const [chatId, value] of Object.entries(sChats)) {
+    if (dChats[chatId] !== undefined) continue;
+    cmds.push(['HSET', `kulsh:u:${dst}:chats`, chatId, value]);
+    cmds.push(['HDEL', `kulsh:u:${dst}:meta`, `del:${chatId}`]);
+    movedChats++;
+  }
+  // Мета: удалённые id и настройки (если у целевого настроек нет — берём исходные).
+  const mergedMeta = { ...sMeta, ...dMeta };
+  for (const [k, v] of Object.entries(mergedMeta)) {
+    if (k === 'settings' || k === 'settingsAt') continue;
+    cmds.push(['HSET', `kulsh:u:${dst}:meta`, k, v]);
+  }
+  if (mergedMeta.settings && !dMeta.settings) {
+    cmds.push(['HSET', `kulsh:u:${dst}:meta`, 'settings', mergedMeta.settings]);
+    cmds.push(['HSET', `kulsh:u:${dst}:meta`, 'settingsAt', String(num(mergedMeta.settingsAt))]);
+  }
+  cmds.push(['DEL', `kulsh:u:${src}:chats`], ['DEL', `kulsh:u:${src}:meta`]);
+
   await pipeline(b, cmds);
-  return { merged: true, from: src, into: dst, added: num(sBal), balance: num(sBal) + num(dBal) };
+  return { merged: true, from: src, into: dst, added: num(sBal), balance: num(sBal) + num(dBal), chats: movedChats };
 }
 
 export async function unlinkIdentity(env, acct, identity) {
