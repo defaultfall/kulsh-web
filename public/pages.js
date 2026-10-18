@@ -49,9 +49,11 @@
       'feat.5.t': 'Скиллы', 'feat.5.d': 'Подключай markdown-скиллы: свои инструкции и наборы знаний, которые подгружаются по требованию.',
       'feat.6.t': 'Синхронизация', 'feat.6.d': 'История и настройки сохраняются в аккаунте и доступны на всех твоих устройствах.',
       'models.eyebrow': 'Модели', 'models.h2': 'Официальные цены — и наши',
-      'models.p': 'Сравни, сколько стоит миллион токенов у разработчика и сколько у нас. Бесплатные модели входят в дневной лимит, платные списываются с общего баланса.',
-      'pricing.note': 'Цены за 1 млн токенов, вход / выход. Официальные — публичные тарифы разработчиков (базовый тариф); у нас — цены Kulsh. Экономия считается по средней цене входа и выхода.',
-      'pricing.official': 'Официально', 'pricing.ours': 'У нас', 'pricing.save': 'Экономия', 'pricing.free': 'в лимите', 'pricing.model': 'Модель',
+      'models.p': 'Сравни, сколько стоит миллион токенов у разработчика и сколько у нас. Бесплатные модели входят в дневной лимит 250 000 токенов, платные списываются с общего баланса. В API отдельные цены.',
+      'pricing.note': 'Цены чата за 1 млн токенов, вход / выход. Официальные — публичные тарифы разработчиков (базовый тариф); у нас — цены Kulsh. Экономия считается по средней цене входа и выхода.',
+      'pricing.chat': 'Чат', 'pricing.api': 'API',
+      'pricing.apiNote': 'Цены API за 1 млн токенов, вход / выход. В чате бесплатные модели входят в дневной лимит, а в API списываются с баланса — поэтому цены различаются. Бесплатны в API только DeepSeek V4.1 Flash и GLM 5.3 Flash; они расходуют дневной лимит.',
+      'pricing.official': 'Официально', 'pricing.ours': 'У нас', 'pricing.save': 'Экономия', 'pricing.free': 'в лимите', 'pricing.freeApi': 'Бесплатно', 'pricing.model': 'Модель', 'pricing.input': 'Вход', 'pricing.output': 'Выход',
       'tag.generous': 'щедро', 'tag.limited': 'ограниченный лимит', 'tag.novision': 'без зрения',
       'm.gemini.d': 'Стабильные и быстрые модели Google — универсальный выбор на каждый день.',
       'm.dsf.d': 'Самый выгодный по лимиту, хорошо держит длинный контекст.',
@@ -85,16 +87,18 @@
       'docs.eyebrow': 'Разработчикам', 'docs.h2': 'API Kulsh',
       'docs.p': 'Единый интерфейс к моделям Kulsh. Один ключ, один общий лимит и баланс — как в веб-чате.',
       'docs.wip': 'API работает. Ключ создаётся в аккаунте — открой меню аккаунта (аватар в правом верхнем углу) → API. Один ключ подходит и для API, и для веб-чата.',
-      'docs.nav.overview': 'Обзор', 'docs.nav.auth': 'Аутентификация', 'docs.nav.chat': 'POST /v1/chat', 'docs.nav.models': 'Модели', 'docs.nav.usage': 'Лимиты и usage', 'docs.nav.errors': 'Ошибки',
+      'docs.nav.overview': 'Обзор', 'docs.nav.auth': 'Аутентификация', 'docs.nav.chat': 'POST /v1/chat', 'docs.nav.models': 'Модели', 'docs.nav.prices': 'Цены API', 'docs.nav.usage': 'Лимиты и usage', 'docs.nav.errors': 'Ошибки',
       'docs.overview.p': 'API принимает сообщения и возвращает ответ модели потоком (Server-Sent Events). Формат совместим с распространённой схемой чат-комплишенов, поэтому подключается обычным HTTP-клиентом.',
-      'docs.overview.l1': 'Базовый URL: <code>https://kulsh.vercel.app/api/v1</code>',
+      'docs.overview.l1': 'Базовый URL: <code>https://kulsh.vercel.app/v1</code>',
       'docs.overview.l2': 'Формат: JSON, ответ — поток событий <code>text/event-stream</code>',
       'docs.overview.l3': 'Аутентификация: заголовок <code>Authorization: Bearer &lt;API_KEY&gt;</code>',
-      'docs.auth.p': 'Ключ создаётся в аккаунте Kulsh (меню аккаунта → API). Один ключ работает и для веб-чата, и для API, а расход идёт с общего баланса и дневного лимита.',
-      'docs.chat.p': 'Отправляет историю сообщений и стримит ответ.',
+      'docs.auth.p': 'Ключ создаётся в аккаунте Kulsh (меню аккаунта → API). Один ключ работает и для веб-чата, и для API. В API запросы списываются с общего баланса, а бесплатные модели — с дневного лимита.',
+      'docs.chat.p': 'Отправляет историю сообщений и стримит ответ. Системные инструкции задаёт клиент: Kulsh не добавляет свои.',
       'docs.chat.req': 'Тело запроса', 'docs.chat.res': 'Ответ (поток)',
-      'docs.models.p': 'Возвращает доступные модели и их множитель расхода дневного лимита.',
-      'docs.usage.p': 'У каждого аккаунта один дневной лимит, измеряемый в токенах. Каждая модель тратит его по-разному: лёгкие — почти ничего, флагманы — заметно больше.',
+      'docs.models.p': 'Возвращает доступные модели, цены API и множитель расхода дневного лимита.',
+      'docs.prices.p': 'Цены в чате и в API различаются. В чате бесплатные модели входят в дневной лимит, а в API запросы списываются с общего баланса. Бесплатны в API только DeepSeek V4.1 Flash и GLM 5.3 Flash; они расходуют дневной лимит. Цены — за 1 млн токенов, вход / выход, в USD.',
+      'docs.prices.note': 'Актуальные цены и признаки бесплатных моделей также отдаёт <code>GET /v1/models</code> в полях <code>pricing</code> и <code>free</code>.',
+      'docs.usage.p': 'У каждого аккаунта один дневной лимит, измеряемый в токенах. Каждая модель тратит его по-разному: лёгкие — почти ничего, флагманы — заметно больше. Лимит — 250 000 токенов в сутки.',
       'docs.usage.note': 'Если ответ не пришёл по технической причине на стороне сервиса — токены не списываются.',
       'docs.errors.l1': '<code>401</code> — ключ отсутствует или недействителен',
       'docs.errors.l2': '<code>402</code> — исчерпан бесплатный лимит и нулевой баланс',
@@ -120,9 +124,11 @@
       'feat.5.t': 'Skills', 'feat.5.d': 'Plug in markdown skills: your instructions and knowledge sets, loaded only on demand.',
       'feat.6.t': 'Sync', 'feat.6.d': 'History and settings are saved to your account and available on all your devices.',
       'models.eyebrow': 'Models', 'models.h2': 'Official prices — and ours',
-      'models.p': 'Compare what a million tokens costs from the developer and from us. Free models are covered by the daily limit, paid ones are charged to the shared balance.',
-      'pricing.note': 'Prices per 1M tokens, input / output. Official prices are the developers’ public base rates; ours are Kulsh prices. Savings use the average of input and output.',
-      'pricing.official': 'Official', 'pricing.ours': 'Ours', 'pricing.save': 'Savings', 'pricing.free': 'in the limit', 'pricing.model': 'Model',
+      'models.p': 'Compare what a million tokens costs from the developer and from us. Free models are covered by the 250,000-token daily limit, paid ones are charged to the shared balance. The API has separate prices.',
+      'pricing.note': 'Chat prices per 1M tokens, input / output. Official prices are the developers’ public base rates; ours are Kulsh prices. Savings use the average of input and output.',
+      'pricing.chat': 'Chat', 'pricing.api': 'API',
+      'pricing.apiNote': 'API prices per 1M tokens, input / output. In chat, free models are covered by the daily limit; in the API they are charged to the balance — that is why the prices differ. Only DeepSeek V4.1 Flash and GLM 5.3 Flash are free in the API; they use the daily limit.',
+      'pricing.official': 'Official', 'pricing.ours': 'Ours', 'pricing.save': 'Savings', 'pricing.free': 'in the limit', 'pricing.freeApi': 'Free', 'pricing.model': 'Model', 'pricing.input': 'Input', 'pricing.output': 'Output',
       'tag.generous': 'generous', 'tag.limited': 'limited limit', 'tag.novision': 'no vision',
       'm.gemini.d': 'Stable and fast Google models — a universal everyday choice.',
       'm.dsf.d': 'The best value on limits, strong with long context.',
@@ -154,16 +160,18 @@
       'docs.eyebrow': 'For developers', 'docs.h2': 'Kulsh API',
       'docs.p': 'A single interface to Kulsh models. One key, one shared limit and balance — just like the web chat.',
       'docs.wip': 'The API is live. Create a key in your account — open the account menu (avatar, top right) → API. One key works for both the API and the web chat.',
-      'docs.nav.overview': 'Overview', 'docs.nav.auth': 'Authentication', 'docs.nav.chat': 'POST /v1/chat', 'docs.nav.models': 'Models', 'docs.nav.usage': 'Limits and usage', 'docs.nav.errors': 'Errors',
+      'docs.nav.overview': 'Overview', 'docs.nav.auth': 'Authentication', 'docs.nav.chat': 'POST /v1/chat', 'docs.nav.models': 'Models', 'docs.nav.prices': 'API prices', 'docs.nav.usage': 'Limits and usage', 'docs.nav.errors': 'Errors',
       'docs.overview.p': 'The API takes messages and streams the model reply (Server-Sent Events). The format follows the common chat-completions shape, so any HTTP client can talk to it.',
-      'docs.overview.l1': 'Base URL: <code>https://kulsh.vercel.app/api/v1</code>',
+      'docs.overview.l1': 'Base URL: <code>https://kulsh.vercel.app/v1</code>',
       'docs.overview.l2': 'Format: JSON, reply is an <code>text/event-stream</code>',
       'docs.overview.l3': 'Auth: header <code>Authorization: Bearer &lt;API_KEY&gt;</code>',
-      'docs.auth.p': 'The key is created in your Kulsh account (account menu → API). One key works for both the web chat and the API, and spending draws from the shared balance and daily limit.',
-      'docs.chat.p': 'Sends the message history and streams the reply.',
+      'docs.auth.p': 'The key is created in your Kulsh account (account menu → API). One key works for both the web chat and the API. API requests are charged to the shared balance; free models use the daily limit.',
+      'docs.chat.p': 'Sends the message history and streams the reply. The client sets the system instructions: Kulsh does not add its own.',
       'docs.chat.req': 'Request body', 'docs.chat.res': 'Response (stream)',
-      'docs.models.p': 'Returns the available models and their multiplier on the daily limit.',
-      'docs.usage.p': 'Every account has one daily budget measured in tokens. Each model drains it differently: light ones almost nothing, flagships noticeably more.',
+      'docs.models.p': 'Returns the available models, API prices and the multiplier on the daily limit.',
+      'docs.prices.p': 'Chat and API prices differ. In chat, free models are covered by the daily limit; in the API, requests are charged to the shared balance. Only DeepSeek V4.1 Flash and GLM 5.3 Flash are free in the API; they use the daily limit. Prices are per 1M tokens, input / output, in USD.',
+      'docs.prices.note': 'Current prices and free-model flags are also returned by <code>GET /v1/models</code> in the <code>pricing</code> and <code>free</code> fields.',
+      'docs.usage.p': 'Every account has one daily budget measured in tokens. Each model drains it differently: light ones almost nothing, flagships noticeably more. The limit is 250,000 tokens per day.',
       'docs.usage.note': 'If a reply fails for a technical reason on the service side, no tokens are charged.',
       'docs.errors.l1': '<code>401</code> — key missing or invalid',
       'docs.errors.l2': '<code>402</code> — free limit used up and balance is zero',
@@ -265,41 +273,53 @@
 
   // ---------- Таблица цен: официально vs Kulsh ----------
   const PRICING_ROWS = [
-    { logo: 'claude', tone: 'rose', name: 'Claude Opus 5.5', dev: 'Anthropic', official: [4.00, 20.00], ours: [0.60, 3.20], free: false },
-    { logo: 'claude', tone: 'mint', name: 'Claude Sonnet 5.5', dev: 'Anthropic', official: [2.00, 10.00], ours: [0.40, 2.00], free: false },
-    { logo: 'claude', tone: 'amber', name: 'Claude Fable 5.1', dev: 'Anthropic', official: [10.00, 50.00], ours: [1.20, 6.00], free: false },
-    { logo: 'claude', tone: 'sky', name: 'Claude Haiku 5.5', dev: 'Anthropic', official: [0.10, 0.50], ours: [0.00, 0.00], free: true },
-    { logo: 'deepseek', tone: 'sky', name: 'DeepSeek V4 Pro', dev: 'DeepSeek', official: [0.55, 2.19], ours: [0.00, 0.00], free: true },
-    { logo: 'deepseek', tone: 'sky', name: 'DeepSeek V4.1 Flash', dev: 'DeepSeek', official: [0.30, 1.20], ours: [0.00, 0.00], free: true },
-    { logo: 'gemini', tone: 'mint', name: 'Gemini 2.5 Flash', dev: 'Google DeepMind', official: [0.30, 2.50], ours: [0.00, 0.00], free: true },
-    { logo: 'gemini', tone: 'mint', name: 'Gemini 3.5 Flash', dev: 'Google DeepMind', official: [0.50, 3.00], ours: [0.00, 0.00], free: true },
-    { logo: 'kimi', tone: 'amber', name: 'Kimi K3', dev: 'Moonshot AI', official: [3.00, 15.00], ours: [0.00, 0.00], free: true },
-    { logo: 'openai', tone: 'rose', name: 'GPT-6 Luna', dev: '[OI]', official: [0.10, 0.50], ours: [0.00, 0.00], free: true },
-    { logo: 'openai', tone: 'rose', name: 'GPT-6.1 Sol', dev: '[OI]', official: [2.00, 10.00], ours: [0.00, 0.00], free: true },
-    { logo: 'openai', tone: 'rose', name: 'GPT-6 Astra', dev: '[OI]', official: [10.00, 50.00], ours: [0.34, 1.70], free: false },
-    { logo: 'zai', tone: 'amber', name: 'GLM 5.3 Flash', dev: 'Z.AI', official: [0.15, 0.50], ours: [0.00, 0.00], free: true },
-    { logo: 'xai', tone: 'rose', name: 'Grok 4.7', dev: 'xAI', official: [2.00, 6.00], ours: [0.20, 1.00], free: false },
-    { logo: 'qwen', tone: 'mint', name: 'Qwen3.8 Max', dev: 'Alibaba', official: [2.00, 6.00], ours: [0.20, 1.00], free: false },
+    { logo: 'claude', tone: 'rose', name: 'Claude Opus 5.5', dev: 'Anthropic', official: [4.00, 20.00], ours: [0.60, 3.20], api: [0.60, 3.20], free: false },
+    { logo: 'claude', tone: 'mint', name: 'Claude Sonnet 5.5', dev: 'Anthropic', official: [2.00, 10.00], ours: [0.40, 2.00], api: [0.40, 2.00], free: false },
+    { logo: 'claude', tone: 'amber', name: 'Claude Fable 5.1', dev: 'Anthropic', official: [10.00, 50.00], ours: [1.20, 6.00], api: [1.20, 6.00], free: false },
+    { logo: 'claude', tone: 'sky', name: 'Claude Haiku 5.5', dev: 'Anthropic', official: [0.10, 0.50], ours: [0.00, 0.00], api: [0.12, 0.58], free: true },
+    { logo: 'deepseek', tone: 'sky', name: 'DeepSeek V4 Pro', dev: 'DeepSeek', official: [0.55, 2.19], ours: [0.00, 0.00], api: [0.29, 1.15], free: true },
+    { logo: 'deepseek', tone: 'sky', name: 'DeepSeek V4.1 Flash', dev: 'DeepSeek', official: [0.30, 1.20], ours: [0.00, 0.00], api: [0.00, 0.00], free: true, apiFree: true },
+    { logo: 'gemini', tone: 'mint', name: 'Gemini 2.5 Flash', dev: 'Google DeepMind', official: [0.30, 2.50], ours: [0.00, 0.00], api: [0.45, 3.75], free: true },
+    { logo: 'gemini', tone: 'mint', name: 'Gemini 2.5 Flash Lite', dev: 'Google DeepMind', official: [0.10, 0.40], ours: [0.00, 0.00], api: [0.15, 0.60], free: true },
+    { logo: 'gemini', tone: 'mint', name: 'Gemini 3.5 Flash', dev: 'Google DeepMind', official: [0.50, 3.00], ours: [0.00, 0.00], api: [0.75, 4.50], free: true },
+    { logo: 'gemini', tone: 'mint', name: 'Gemini 3.5 Flash Lite', dev: 'Google DeepMind', official: [0.10, 0.40], ours: [0.00, 0.00], api: [0.15, 0.60], free: true },
+    { logo: 'gemini', tone: 'mint', name: 'Gemini 3.6 Flash', dev: 'Google DeepMind', official: [0.50, 3.00], ours: [0.00, 0.00], api: [0.75, 4.50], free: true },
+    { logo: 'gemini', tone: 'mint', name: 'Gemini 3.7 Flash', dev: 'Google DeepMind', official: [0.50, 3.00], ours: [0.00, 0.00], api: [0.75, 4.50], free: true },
+    { logo: 'gemini', tone: 'mint', name: 'Gemini 3.8 Flash', dev: 'Google DeepMind', official: [0.50, 3.00], ours: [0.00, 0.00], api: [0.75, 4.50], free: true },
+    { logo: 'kimi', tone: 'amber', name: 'Kimi K3', dev: 'Moonshot AI', official: [3.00, 15.00], ours: [0.00, 0.00], api: [0.23, 1.30], free: true },
+    { logo: 'openai', tone: 'rose', name: 'GPT-6 Luna', dev: '[OI]', official: [0.10, 0.50], ours: [0.00, 0.00], api: [0.13, 0.61], free: true },
+    { logo: 'openai', tone: 'rose', name: 'GPT-6.1 Sol', dev: '[OI]', official: [2.00, 10.00], ours: [0.00, 0.00], api: [0.18, 0.90], free: true },
+    { logo: 'openai', tone: 'rose', name: 'GPT-6 Astra', dev: '[OI]', official: [10.00, 50.00], ours: [0.34, 1.70], api: [0.34, 1.70], free: false },
+    { logo: 'zai', tone: 'amber', name: 'GLM 5.3 Flash', dev: 'Z.AI', official: [0.15, 0.50], ours: [0.00, 0.00], api: [0.00, 0.00], free: true, apiFree: true },
+    { logo: 'xai', tone: 'rose', name: 'Grok 4.7', dev: 'xAI', official: [2.00, 6.00], ours: [0.20, 1.00], api: [0.20, 1.00], free: false },
+    { logo: 'qwen', tone: 'mint', name: 'Qwen3.8 Max', dev: 'Alibaba', official: [2.00, 6.00], ours: [0.20, 1.00], api: [0.20, 1.00], free: false },
   ];
 
-  function renderPricing() {
+  let pricingMode = 'chat';
+  function renderPricing(mode) {
     const host = document.getElementById('pricingTable');
     if (!host) return;
+    if (mode === 'chat' || mode === 'api') pricingMode = mode;
+    const isApi = pricingMode === 'api';
     const d = tr();
     const money = (v) => '$' + (Number(v) || 0).toFixed(2);
+    const thirdLabel = isApi ? d['pricing.api'] : d['pricing.ours'];
     const head = `<div class="pricing-head">
       <span>${d['pricing.model'] || (lang === 'en' ? 'Model' : 'Модель')}</span>
       <span>${d['pricing.official']}</span>
-      <span>${d['pricing.ours']}</span>
+      <span>${thirdLabel}</span>
       <span>${d['pricing.save']}</span>
     </div>`;
     const rows = PRICING_ROWS.map((r) => {
+      const price = isApi ? r.api : r.ours;
+      const free = isApi ? !!r.apiFree : !!r.free;
       const avgOfficial = (r.official[0] + r.official[1]) / 2;
-      const avgOurs = (r.ours[0] + r.ours[1]) / 2;
-      const pct = r.free || !avgOurs ? 100 : Math.max(0, Math.round((1 - avgOurs / avgOfficial) * 100));
-      const ours = r.free
+      const avgPrice = (price[0] + price[1]) / 2;
+      const pct = free ? 100 : Math.max(0, Math.round((1 - avgPrice / avgOfficial) * 100));
+      const value = free
         ? `<b>$0</b> / <b>$0</b>`
-        : `<b>${money(r.ours[0])}</b> / <b>${money(r.ours[1])}</b>`;
+        : `<b>${money(price[0])}</b> / <b>${money(price[1])}</b>`;
+      const save = free ? '−100%' : (pct > 0 ? `−${pct}%` : '—');
       const logo = window.kulshLogoSVG ? window.kulshLogoSVG(r.logo) : '';
       return `<div class="pricing-row">
         <div class="pricing-model">
@@ -310,11 +330,21 @@
           </span>
         </div>
         <div class="pricing-price" data-label="${d['pricing.official']}">${money(r.official[0])} / ${money(r.official[1])}</div>
-        <div class="pricing-price" data-label="${d['pricing.ours']}">${ours}</div>
-        <div class="pricing-save" data-label="${d['pricing.save']}">−${pct}%</div>
+        <div class="pricing-price" data-label="${thirdLabel}">${value}</div>
+        <div class="pricing-save" data-label="${d['pricing.save']}">${save}</div>
       </div>`;
     }).join('');
     host.innerHTML = head + rows;
+    const note = document.getElementById('pricingNote');
+    if (note) {
+      note.textContent = isApi ? d['pricing.apiNote'] : d['pricing.note'];
+      note.classList.toggle('is-api', isApi);
+    }
+    document.querySelectorAll('.pricing-tab').forEach((b) => {
+      const on = b.dataset.pricing === pricingMode;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
   }
 
   // ---------- Появление элементов при прокрутке ----------
@@ -411,6 +441,10 @@
         writeSettings({ lang: b.dataset.lang });
         applyLang();
       });
+    });
+
+    document.querySelectorAll('.pricing-tab').forEach((b) => {
+      b.addEventListener('click', () => renderPricing(b.dataset.pricing));
     });
 
     document.querySelectorAll('[data-theme-toggle]').forEach((btn) => {

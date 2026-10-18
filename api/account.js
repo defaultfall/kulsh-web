@@ -70,7 +70,7 @@ export default async function handler(req) {
     const [account, keys] = await Promise.all([accountView(env, acct), apiKeys(env, acct)]);
     const tg = account.identities.find((x) => x.provider === 'tg');
     const topupTag = tg ? `ID${String(tg.identity).slice(3)}` : '';
-    const topupUrl = env.DONATIONALERTS_PAGE || 'https://www.donationalerts.com/r/downfalls';
+    const topupUrl = env.DONATIONALERTS_PAGE || 'https://www.donationalerts.com/r/starfallapk';
     return json({ account, keys: keys.map(publicKey), topup: { tag: topupTag, url: topupUrl } });
   }
   if (req.method !== 'POST') return json({ error: 'method' }, 405);

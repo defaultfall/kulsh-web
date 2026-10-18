@@ -18,9 +18,9 @@ kulsh-web/
 │   ├── chat.js          ← веб-чат (сессия/гость) → _chat-core
 │   ├── _chat-core.js    ← общее ядро стриминга (чат + публичный API)
 │   ├── v1/
-│   │   ├── chat.js      ← POST /api/v1/chat (API-ключ, SSE)
-│   │   ├── models.js    ← GET  /api/v1/models
-│   │   └── usage.js     ← GET  /api/v1/usage
+│   │   ├── chat.js      ← POST /v1/chat (API-ключ, SSE)
+│   │   ├── models.js    ← GET  /v1/models
+│   │   └── usage.js     ← GET  /v1/usage
 │   ├── keys.js          ← управление API-ключами аккаунта
 │   ├── _apikeys.js      ← хранение/проверка API-ключей (хеш в Redis)
 │   ├── _providers.js    ← адаптеры провайдеров (google / neutralbeats)
@@ -239,8 +239,9 @@ HttpOnly-cookie (30 дней), в ней только id, имя и аватар
 
 Поддерживаются `stream: true` (SSE с `data: [DONE]`), `stream: false` (обычный
 JSON), `content` строкой или массивом частей (`text` + `image_url`), а также
-`GET /v1/models` в формате `{"object":"list","data":[...]}`. Старый нативный
-эндпоинт `POST /api/v1/chat` остался для обратной совместимости.
+`GET /v1/models` в формате `{"object":"list","data":[...]}`. Нативный
+эндпоинт `POST /v1/chat` работает наравне с OpenAI-совместимым; старый
+`/api/v1/chat` оставлен для обратной совместимости.
 
 ### Пополнение и промокоды на сайте
 
@@ -372,7 +373,7 @@ kulsh:g:{guestId}:usage:{day}     → то же для гостя
 Если база не подключена, `enabled: false` и лимит не применяется — сайт
 продолжает работать.
 
-Константы лимитов — в `api/_usage.js`: `GUEST_TOKEN_LIMIT = 15000`, `USER_TOKEN_LIMIT = 100000`.
+Константы лимитов — в `api/_usage.js`: `GUEST_TOKEN_LIMIT = 37500`, `USER_TOKEN_LIMIT = 250000`.
 
 ## Скиллы
 
@@ -413,24 +414,29 @@ DELETE /api/skills?id=...     → { ok: true }
 
 ## Публичный API
 
-Публичный API работает на том же ядре, что и веб-чат (`api/_chat-core.js`), и делит
-с ним дневной лимит. Базовый адрес: `https://kulsh.vercel.app/api/v1`.
+Публичный API работает на том же ядре, что и веб-чат (`api/_chat-core.js`).
+Базовый адрес: `https://kulsh.vercel.app/v1`. В API свои цены: запросы к платным
+моделям списываются с общего баланса, бесплатные API-модели (DeepSeek V4.1 Flash
+и GLM 5.3 Flash) не тарифицируются, остальные бесплатные в чате модели стоят
+дёшево. Цены — в `API_PRICING` (`api/_models.js`) и в `GET /v1/models`.
 
-Аутентификация — заголовок `Authorization: Bearer <API_KEY>`. Ключ создаётся в
-аккаунте: меню аккаунта (аватар) → **API**. Сам ключ показывается один раз; в базе
+API ведёт себя как обычный провайдер: Kulsh не добавляет свои системные
+инструкции, дату, имя пользователя или поиск. Всё поведение задаёт клиент через
+`messages` с ролью `system`. Аутентификация — заголовок `Authorization: Bearer <API_KEY>`.
+Ключ создаётся в аккаунте: меню аккаунта (аватар) → **API**. Сам ключ показывается один раз; в базе
 хранится только его SHA-256 хеш (`api/_apikeys.js`), поэтому утечка Redis не даёт
 доступа к API. У аккаунта до 10 ключей.
 
 | Метод и путь        | Что делает |
 |---------------------|------------|
-| `POST /api/v1/chat` | стримит ответ модели (SSE) |
-| `GET  /api/v1/models` | список моделей: `id`, `provider`, `vision`, `mult`, `name` |
-| `GET  /api/v1/usage` | состояние дневного лимита аккаунта |
+| `POST /v1/chat` | стримит ответ модели (SSE) |
+| `GET  /v1/models` | список моделей: `id`, `provider`, `vision`, `mult`, `name`, `free`, `pricing` |
+| `GET  /v1/usage` | состояние дневного лимита аккаунта |
 
 Пример:
 
 ```bash
-curl -N https://kulsh.vercel.app/api/v1/chat \
+curl -N https://kulsh.vercel.app/v1/chat \
   -H "Authorization: Bearer kulsh_sk_..." \
   -H "Content-Type: application/json" \
   -d '{"model":"deepseek-v4.1-flash","messages":[{"role":"user","content":"Привет!"}]}'
@@ -441,7 +447,7 @@ curl -N https://kulsh.vercel.app/api/v1/chat \
 ```
 data: {"delta":"Привет"}
 data: {"delta":", чем помочь?"}
-data: {"done":true,"usage":{"used":12430,"limit":100000,"unit":"tokens","cost":52}}
+data: {"done":true,"usage":{"used":12430,"limit":250000,"unit":"tokens","cost":52}}
 ```
 
 Предполётные ошибки публичного API отдают честные HTTP-статусы (веб-чат на те же
@@ -535,7 +541,7 @@ python -m http.server 4173 --directory public
   (он есть в меню аккаунта).
 
 ## v6: публичный API и правки
-- Публичный API `/api/v1` (`chat`, `models`, `usage`) на общем ядре `api/_chat-core.js`
+- Публичный API `/v1` (`chat`, `models`, `usage`) на общем ядре `api/_chat-core.js`
   с аутентификацией по API-ключу (`Authorization: Bearer`), честными HTTP-статусами
   и CORS.
 - API-ключи создаются в аккаунте (меню → API), хранятся хешами в Redis; до 10 ключей.

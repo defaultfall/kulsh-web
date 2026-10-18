@@ -47,12 +47,18 @@ const google = {
   async open({ model, key, messages, systemText, temperature, signal, webSearch }) {
     const contents = messages.map(geminiContent).filter(Boolean);
     const url = `${GEMINI_BASE}/${encodeURIComponent(model)}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`;
+    const generationConfig = { maxOutputTokens: 16384 };
+    if (temperature !== undefined) generationConfig.temperature = temperature;
     const payload = {
-      system_instruction: { parts: [{ text: systemText }] },
       contents,
-      generationConfig: { temperature, maxOutputTokens: 16384 },
+      generationConfig,
       safetySettings: SAFETY,
     };
+    // Пустой system_instruction Gemini может отвергнуть, а в API системных
+    // инструкций Kulsh нет — тогда просто не передаём поле.
+    if (systemText && systemText.trim()) {
+      payload.system_instruction = { parts: [{ text: systemText }] };
+    }
     if (webSearch) payload.tools = [{ google_search: {} }];
     return fetch(url, {
       method: 'POST',
@@ -71,8 +77,10 @@ const google = {
       blocked = blocked || cand.finishReason;
     }
     const um = data && data.usageMetadata;
-    const usage = um ? (Number(um.promptTokenCount) || 0) + (Number(um.candidatesTokenCount) || 0) : undefined;
-    return { text, finish: cand && cand.finishReason, blocked, usage };
+    const usageIn = um ? (Number(um.promptTokenCount) || 0) : undefined;
+    const usageOut = um ? (Number(um.candidatesTokenCount) || 0) : undefined;
+    const usage = um ? (usageIn || 0) + (usageOut || 0) : undefined;
+    return { text, finish: cand && cand.finishReason, blocked, usage, usageIn, usageOut };
   },
   // Разбор НЕ-стримингового ответа (если сервис проигнорировал stream:true).
   parseFull(data) {
@@ -111,18 +119,16 @@ const openaiCompat = {
   },
   async open({ model, key, messages, systemText, temperature, signal, env }) {
     const base = (env.NEUTRALBEATS_BASE_URL || NEUTRALBEATS_BASE).replace(/\/+$/, '');
-    const msgs = [{ role: 'system', content: systemText }, ...messages.map(openaiMessage)];
+    const msgs = systemText && systemText.trim()
+      ? [{ role: 'system', content: systemText }, ...messages.map(openaiMessage)]
+      : messages.map(openaiMessage);
+    const payload = { model, messages: msgs, stream: true, max_tokens: 16384 };
+    if (temperature !== undefined) payload.temperature = temperature;
     return fetch(`${base}/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
       signal,
-      body: JSON.stringify({
-        model,
-        messages: msgs,
-        temperature,
-        stream: true,
-        max_tokens: 16384,
-      }),
+      body: JSON.stringify(payload),
     });
   },
   parseEvent(data) {
@@ -138,8 +144,10 @@ const openaiCompat = {
       else if (typeof d.reasoning === 'string') reasoning = d.reasoning;
     }
     const u = data && data.usage;
-    const usage = u ? (Number(u.prompt_tokens) || 0) + (Number(u.completion_tokens) || 0) : undefined;
-    return { text, reasoning, finish: ch && ch.finish_reason, blocked: null, usage };
+    const usageIn = u ? (Number(u.prompt_tokens) || 0) : undefined;
+    const usageOut = u ? (Number(u.completion_tokens) || 0) : undefined;
+    const usage = u ? (usageIn || 0) + (usageOut || 0) : undefined;
+    return { text, reasoning, finish: ch && ch.finish_reason, blocked: null, usage, usageIn, usageOut };
   },
   // Разбор НЕ-стримингового ответа (если сервис проигнорировал stream:true).
   parseFull(data) {
@@ -160,7 +168,9 @@ export const PROVIDERS = { google, neutralbeats: openaiCompat };
 export function canonicalMessages(messages) {
   const out = [];
   for (const m of messages) {
-    if (!m || (m.role !== 'user' && m.role !== 'assistant')) continue;
+    if (!m) continue;
+    const role = m.role === 'developer' ? 'system' : m.role;
+    if (role !== 'system' && role !== 'user' && role !== 'assistant') continue;
     let text = '';
     let media = [];
     if (Array.isArray(m.content)) {
@@ -188,8 +198,10 @@ export function canonicalMessages(messages) {
         ? m.attachments.filter((a) => a && a.data && a.mimeType)
         : [];
     }
+    // У system-сообщений не бывает вложений: только текст инструкции.
+    if (role === 'system') media = [];
     if (!text.trim() && !media.length) continue;
-    out.push({ role: m.role, text, media });
+    out.push({ role, text, media });
   }
   return out;
 }

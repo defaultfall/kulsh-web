@@ -352,6 +352,21 @@ select {
 .search-chip.is-disabled:hover { background: none; color: var(--md-on-surface-variant); }
 
 /* ---- Таблица цен на лендинге ---- */
+.pricing-tabs {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 3px; margin-bottom: 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--md-on-surface) 6%, transparent);
+  border: 1px solid var(--md-outline-variant);
+}
+.pricing-tab {
+  height: 32px; padding: 0 18px; border-radius: 999px;
+  font-size: .8rem; font-weight: 600;
+  color: var(--md-on-surface-variant);
+  transition: background var(--dur-s), color var(--dur-s);
+}
+.pricing-tab:hover { color: var(--md-on-surface); }
+.pricing-tab.is-active { background: var(--md-primary); color: var(--md-on-primary); }
 /* Кольцо-обводка .panel::after выходит за границы на 2px — overflow: hidden его срезал. */
 .pricing { overflow: visible; }
 .pricing-head { border-radius: var(--r-lg) var(--r-lg) 0 0; }
@@ -389,6 +404,13 @@ select {
 .pricing-price b { color: var(--md-on-surface); font-weight: 600; }
 .pricing-save { font-size: 13.5px; font-weight: 700; color: var(--md-mint); font-variant-numeric: tabular-nums; }
 .pricing-note { font-size: .78rem; color: var(--md-on-surface-variant); margin-top: 10px; line-height: 1.5; }
+.pricing-note.is-api {
+  color: var(--md-on-amber-container);
+  background: var(--md-amber-container);
+  border: 1px solid color-mix(in srgb, var(--md-amber) 30%, transparent);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
 .pricing.is-in .pricing-row { animation: pricingRowIn .45s var(--ease-emphasized) both; }
 .pricing.is-in .pricing-row:nth-child(2) { animation-delay: .02s; }
 .pricing.is-in .pricing-row:nth-child(3) { animation-delay: .04s; }

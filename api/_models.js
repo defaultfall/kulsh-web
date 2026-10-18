@@ -43,7 +43,7 @@ export const MODELS = {
   'qwen3.8-max-0902':      { provider: 'neutralbeats', dev: 'alibaba', vision: true,  mult: 3, label: 'Qwen3.8 Max', paid: true },
 };
 
-// Цены за 1 млн токенов в USD — те же, что в боте (src/util.py MODEL_PRICING).
+// Цены чата за 1 млн токенов в USD — те же, что в боте (src/util.py MODEL_PRICING).
 export const PRICING = {
   'claude-opus-5-5': { in: 0.60, out: 3.20 },
   'claude-sonnet-5-5': { in: 0.40, out: 2.00 },
@@ -53,13 +53,54 @@ export const PRICING = {
   'qwen3.8-max-0902': { in: 0.20, out: 1.00 },
 };
 
+// Цены API за 1 млн токенов в USD. Это отдельный прайс: в чате бесплатные
+// модели входят в дневной лимит, а в API они стоят денег (кроме двух
+// бесплатных исключений). Для платных моделей цена API совпадает с чатом.
+// Бесплатные модели оценены примерно в 1.5–2× от закупочной цены провайдера.
+export const API_PRICING = {
+  ...PRICING,
+  // Anthropic
+  'claude-haiku-5-5':       { in: 0.12, out: 0.58 },
+  // Google DeepMind
+  'gemini-2.5-flash':       { in: 0.45, out: 3.75 },
+  'gemini-2.5-flash-lite':  { in: 0.15, out: 0.60 },
+  'gemini-3.5-flash':       { in: 0.75, out: 4.50 },
+  'gemini-3.5-flash-lite':  { in: 0.15, out: 0.60 },
+  'gemini-3.6-flash':       { in: 0.75, out: 4.50 },
+  'gemini-3.7-flash':       { in: 0.75, out: 4.50 },
+  'gemini-3.8-flash':       { in: 0.75, out: 4.50 },
+  // DeepSeek
+  'deepseek-v4-pro':        { in: 0.29, out: 1.15 },
+  // Moonshot AI
+  'kimi-k3':                { in: 0.23, out: 1.30 },
+  // [OI]
+  'gpt-6-luna':             { in: 0.13, out: 0.61 },
+  'gpt-6.1-sol':            { in: 0.18, out: 0.90 },
+  // Бесплатные в API
+  'deepseek-v4.1-flash':    { in: 0, out: 0 },
+  'glm-5.3-flash':          { in: 0, out: 0 },
+};
+
+export const API_FREE = new Set(['deepseek-v4.1-flash', 'glm-5.3-flash']);
+
 const USD_TO_RUB = Number(process.env.USD_TO_RUB || 90);
 
 export const isPaid = (id) => Object.prototype.hasOwnProperty.call(PRICING, id);
+export const isApiFree = (id) => API_FREE.has(id);
+export const isApiPaid = (id) => Object.prototype.hasOwnProperty.call(MODELS, id) && !API_FREE.has(id);
 
-// Стоимость запроса в копейках.
+// Стоимость запроса в чате, в копейках.
 export function costKopecks(id, inputTokens, outputTokens) {
   const p = PRICING[id];
+  if (!p) return 0;
+  const usd = (Math.max(0, inputTokens) * p.in + Math.max(0, outputTokens) * p.out) / 1_000_000;
+  return Math.max(1, Math.round(usd * USD_TO_RUB * 100));
+}
+
+// Стоимость запроса в API, в копейках. Для двух бесплатных моделей — 0.
+export function apiCostKopecks(id, inputTokens, outputTokens) {
+  if (isApiFree(id)) return 0;
+  const p = API_PRICING[id];
   if (!p) return 0;
   const usd = (Math.max(0, inputTokens) * p.in + Math.max(0, outputTokens) * p.out) / 1_000_000;
   return Math.max(1, Math.round(usd * USD_TO_RUB * 100));

@@ -1,5 +1,5 @@
 // api/keys.js — управление API-ключами аккаунта (для интерфейса).
-// Требуется вход (cookie-сессия); сами ключи нужны для публичного API /api/v1.
+// Требуется вход (cookie-сессия); сами ключи нужны для публичного API /v1.
 //
 //   GET    /api/keys            → { enabled, keys: [{ id, name, prefix, createdAt, lastUsed }] }
 //   POST   /api/keys  {name}    → { key, secret }   (secret показывается один раз)

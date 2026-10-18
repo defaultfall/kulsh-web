@@ -974,11 +974,11 @@
   }
 
   // ============================================================
-  // API-КЛЮЧИ (публичный API /api/v1)
+  // API-КЛЮЧИ (публичный API /v1)
   // ============================================================
   let apiKeys = [];
 
-  const apiBaseUrl = () => (location.origin || 'https://kulsh.vercel.app') + '/api/v1';
+  const apiBaseUrl = () => (location.origin || 'https://kulsh.vercel.app') + '/v1';
 
   async function loadApiKeys() {
     try {

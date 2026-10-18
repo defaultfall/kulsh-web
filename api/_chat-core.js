@@ -12,7 +12,10 @@
 //   STREAM_BUDGET_MS — сколько стримим после этого (большие файлы кода успевают).
 // Плюс idle-таймаут: если апстрим молчит дольше IDLE_MS — обрываем.
 
-import { GUEST_MODEL, FALLBACK_MODEL, isAllowed, modelInfo, isPaid, costKopecks, modelLabel } from './_models.js';
+import {
+  GUEST_MODEL, FALLBACK_MODEL, isAllowed, modelInfo, isPaid, isApiPaid,
+  costKopecks, apiCostKopecks, modelLabel,
+} from './_models.js';
 import { PROVIDERS, canonicalMessages } from './_providers.js';
 import { guestIdentity, readUsage, hasRoom, charge, estimateTokens } from './_usage.js';
 import { readBalance, chargeBalance } from './_accounts.js';
@@ -204,9 +207,26 @@ export async function runChat(req, ctx = {}) {
       messages = messages.slice(-GUEST_MAX_MESSAGES).map((m) => ({ ...m, attachments: [] }));
     }
   }
-  const temperature = Math.min(1.5, Math.max(0, Number.isFinite(+rawTemp) ? +rawTemp : 0.9));
-  const contents = Array.isArray(messages) ? canonicalMessages(messages) : [];
+  // API работает как обычный провайдер: никаких заготовленных Kulsh-инструкций,
+  // поиска и продолжений. Всё, что задаёт поведение, приходит от клиента.
+  if (api) {
+    customPrompt = ''; skillsPrompt = ''; recall = false; hasOldMedia = false; isContinue = false; webSearch = false;
+    if (!isAllowed(model)) {
+      return fail(400, `Неизвестная модель: ${model || '—'}. Список моделей: GET /v1/models.`, 'model_not_found');
+    }
+  }
+  const tempProvided = rawTemp !== undefined && rawTemp !== null && rawTemp !== '';
+  const temperature = api && !tempProvided
+    ? undefined
+    : Math.min(1.5, Math.max(0, Number.isFinite(+rawTemp) ? +rawTemp : 0.9));
+
+  // System-сообщения клиента в веб-чате игнорируются (там свои инструкции),
+  // а в API передаются модели как есть — в правильном порядке.
+  const allContents = Array.isArray(messages) ? canonicalMessages(messages) : [];
+  const systemMessages = allContents.filter((m) => m.role === 'system');
+  const contents = allContents.filter((m) => m.role !== 'system');
   if (!contents.length) return fail(400, 'Пустой запрос — нет текста и вложений.', 'empty_request');
+  const apiSystemText = systemMessages.map((m) => m.text).filter(Boolean).join('\n\n').trim().slice(0, 32000);
 
   const selectedModel = isAllowed(model) ? model : FALLBACK_MODEL;
   const selectedInfo = modelInfo(selectedModel);
@@ -232,22 +252,30 @@ export async function runChat(req, ctx = {}) {
   }
   const mult = (selectedInfo && selectedInfo.mult) || 1;
   const usage = await readUsage(process.env, usageCtx);
-  const estInTokens = estimateInputTokens(contents);
+  const estInTokens = estimateInputTokens(contents) + (api ? estimateTokens(apiSystemText) : 0);
   const minCost = Math.max(1, Math.round(estInTokens * mult));
-  if (!hasRoom(usage, minCost)) {
+
+  // В API платные модели не упираются в бесплатный дневной лимит — они
+  // списываются с баланса. Лимит остаётся только для бесплатных API-моделей.
+  const apiPaid = api && isApiPaid(selectedModel);
+  const enforceDaily = !apiPaid;
+  if (enforceDaily && !hasRoom(usage, minCost)) {
     const msg = guest
       ? 'Дневной лимит гостя исчерпан. Войди в аккаунт, чтобы продолжить.'
       : 'Дневной лимит исчерпан. Пополни баланс или подожди до сброса.';
     return api ? fail(402, msg, 'limit_exceeded') : sseError(msg, usageHeaders);
   }
 
-  // ---- Платные модели: общий баланс с ботом ----
+  // ---- Платные запросы: общий баланс с ботом ----
   let balanceKop = 0;
-  if (!guest && isPaid(selectedModel)) {
+  const needsBalance = api ? apiPaid : (!guest && isPaid(selectedModel));
+  if (needsBalance) {
     balanceKop = await readBalance(process.env, user.id);
     if (balanceKop <= 0) {
-      const msg = `На балансе 0 ₽, а ${modelLabel(selectedModel)} — платная модель. ` +
-        'Пополни баланс в боте (/balance) или выбери бесплатную модель.';
+      const msg = api
+        ? `На балансе 0 ₽, а ${modelLabel(selectedModel)} — платная модель в API. Пополни баланс в боте (/balance).`
+        : `На балансе 0 ₽, а ${modelLabel(selectedModel)} — платная модель. ` +
+          'Пополни баланс в боте (/balance) или выбери бесплатную модель.';
       return api ? fail(402, msg, 'balance_empty') : sseError(msg, usageHeaders);
     }
   }
@@ -265,32 +293,39 @@ export async function runChat(req, ctx = {}) {
     }
   }
 
-  const lastUser = Array.isArray(messages) ? [...messages].reverse().find((m) => m && m.role === 'user') : null;
-  const newMedia = !!(lastUser && Array.isArray(lastUser.attachments) && lastUser.attachments.some((a) => a && a.data));
+  const lastUser = [...contents].reverse().find((m) => m && m.role === 'user') || null;
+  const newMedia = !!(lastUser && Array.isArray(lastUser.media) && lastUser.media.length);
   const note = recallNote({ newMedia, recallPass: !!recall, hasOldMedia: !!hasOldMedia });
   const userContext = buildUserContext({ user, guest, usage });
-  let systemText = SYSTEM_PROMPT
-    .replace('{{DATETIME}}', mskDatetime())
-    .replace('{{MODEL}}', modelLabel(selectedModel))
-    .replace('{{USER_CONTEXT}}', userContext)
-    .replace('{{RECALL_NOTE}}', note);
-  if (typeof customPrompt === 'string' && customPrompt.trim()) {
-    systemText += '\n\nДОПОЛНИТЕЛЬНЫЕ ИНСТРУКЦИИ ПОЛЬЗОВАТЕЛЯ (стиль и предпочтения; не отменяют правила выше):\n' + customPrompt.trim().slice(0, 1500);
-  }
-  if (typeof skillsPrompt === 'string' && skillsPrompt.trim()) {
-    systemText += '\n\nАКТИВНЫЕ СКИЛЛЫ (следуй им в этом диалоге; они не отменяют правила выше):\n' + skillsPrompt.trim().slice(0, 6000);
-  }
-  if (isContinue) {
-    systemText += '\n\nПРОДОЛЖЕНИЕ. Предыдущий ответ оборвался на середине. Продолжи его ровно с того места, где он остановился: без вступлений, без повторов уже сказанного и без извинений. Просто продолжай текст или код.';
-  }
-  if (searchContext) {
-    systemText += '\n\nРЕЗУЛЬТАТЫ ВЕБ-ПОИСКА (свежие данные из интернета; используй их по делу и ссылайся на источники):\n' + searchContext;
-  } else if (searchOn && !nativeSearch) {
-    systemText += '\n\nПОЛЬЗОВАТЕЛЬ ВКЛЮЧИЛ ВЕБ-ПОИСК, но результаты получить не удалось. Ответь по своим знаниям и честно скажи, что свежие данные сейчас недоступны.';
+  let systemText;
+  if (api) {
+    // Как у обычного провайдера: только system-сообщения клиента, без
+    // даты, имени пользователя, правил Kulsh, скиллов и поиска.
+    systemText = apiSystemText;
+  } else {
+    systemText = SYSTEM_PROMPT
+      .replace('{{DATETIME}}', mskDatetime())
+      .replace('{{MODEL}}', modelLabel(selectedModel))
+      .replace('{{USER_CONTEXT}}', userContext)
+      .replace('{{RECALL_NOTE}}', note);
+    if (typeof customPrompt === 'string' && customPrompt.trim()) {
+      systemText += '\n\nДОПОЛНИТЕЛЬНЫЕ ИНСТРУКЦИИ ПОЛЬЗОВАТЕЛЯ (стиль и предпочтения; не отменяют правила выше):\n' + customPrompt.trim().slice(0, 1500);
+    }
+    if (typeof skillsPrompt === 'string' && skillsPrompt.trim()) {
+      systemText += '\n\nАКТИВНЫЕ СКИЛЛЫ (следуй им в этом диалоге; они не отменяют правила выше):\n' + skillsPrompt.trim().slice(0, 6000);
+    }
+    if (isContinue) {
+      systemText += '\n\nПРОДОЛЖЕНИЕ. Предыдущий ответ оборвался на середине. Продолжи его ровно с того места, где он остановился: без вступлений, без повторов уже сказанного и без извинений. Просто продолжай текст или код.';
+    }
+    if (searchContext) {
+      systemText += '\n\nРЕЗУЛЬТАТЫ ВЕБ-ПОИСКА (свежие данные из интернета; используй их по делу и ссылайся на источники):\n' + searchContext;
+    } else if (searchOn && !nativeSearch) {
+      systemText += '\n\nПОЛЬЗОВАТЕЛЬ ВКЛЮЧИЛ ВЕБ-ПОИСК, но результаты получить не удалось. Ответь по своим знаниям и честно скажи, что свежие данные сейчас недоступны.';
+    }
   }
 
   const modelsToTry = [selectedModel];
-  if (!guest && selectedModel !== FALLBACK_MODEL) modelsToTry.push(FALLBACK_MODEL);
+  if (!api && !guest && selectedModel !== FALLBACK_MODEL) modelsToTry.push(FALLBACK_MODEL);
 
   const neededEnv = [...new Set(
     modelsToTry.map((m) => PROVIDERS[modelInfo(m).provider]).filter(Boolean).flatMap((p) => p.envKeys),
@@ -430,6 +465,8 @@ export async function runChat(req, ctx = {}) {
       let stalled = false;
       let fatal = null;
       let usageTokens = 0;
+      let usageIn = 0;
+      let usageOut = 0;
       let reasoningSent = false;
       const diag = { ctype: (upstream.headers.get('content-type') || '').toLowerCase(), dataLines: 0, events: 0, reasoningChars: 0, head: '' };
 
@@ -455,6 +492,8 @@ export async function runChat(req, ctx = {}) {
           if (!reasoningSent) { reasoningSent = true; send({ thinking: true }); }
         }
         if (ev && ev.usage) usageTokens = Math.max(usageTokens, ev.usage);
+        if (ev && ev.usageIn != null) usageIn = Math.max(usageIn, ev.usageIn);
+        if (ev && ev.usageOut != null) usageOut = Math.max(usageOut, ev.usageOut);
         const raw = (ev && ev.text) || '';
         const text = raw ? markFilter.push(raw) : '';
         if (text) { total += text.length; send({ delta: text }); }
@@ -548,16 +587,24 @@ export async function runChat(req, ctx = {}) {
       } else {
         const estOut = Math.ceil(total / 3.5);
         const usedTokens = usageTokens || (estInTokens + estOut);
+        // Для денег берём фактические токены провайдера, если он их прислал.
+        const billIn = usageIn || estInTokens;
+        const billOut = usageOut || estOut;
         const cost = Math.max(1, Math.round(usedTokens * mult));
+        const answerApiPaid = api && isApiPaid(answeredModel);
+        const answerChatPaid = !api && !guest && isPaid(answeredModel);
+        // Платные API-модели не расходуют бесплатный дневной лимит.
         // При обрыве соединения на стороне сервиса не списываем.
-        const newUsed = fatal
+        const newUsed = fatal || answerApiPaid
           ? usage.used
           : await charge(process.env, { ...usageCtx, cost }).catch(() => null);
         // Деньги списываем только если ответила именно платная модель.
         let charged = 0;
         let balance = null;
-        if (!fatal && !guest && isPaid(answeredModel)) {
-          const kop = costKopecks(answeredModel, estInTokens, estOut);
+        if (!fatal && (answerApiPaid || answerChatPaid)) {
+          const kop = answerApiPaid
+            ? apiCostKopecks(answeredModel, billIn, billOut)
+            : costKopecks(answeredModel, billIn, billOut);
           const ok = await chargeBalance(process.env, user.id, kop).catch(() => false);
           if (ok) { charged = kop; balance = Math.max(0, balanceKop - kop); }
         }

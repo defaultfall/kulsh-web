@@ -1,6 +1,6 @@
-// api/v1/models.js — публичный API: список моделей и их множителей лимита.
-//   GET /api/v1/models   (Authorization: Bearer kulsh_sk_...)
-import { MODELS, modelLabel } from '../_models.js';
+// api/v1/models.js — публичный API: список моделей, цены API и множители лимита.
+//   GET /v1/models   (Authorization: Bearer kulsh_sk_...)
+import { MODELS, modelLabel, API_PRICING, API_FREE } from '../_models.js';
 import { resolveApiKey, apiKeyFromRequest } from '../_apikeys.js';
 
 export const config = { runtime: 'edge' };
@@ -25,9 +25,15 @@ export default async function handler(req) {
   const userId = raw ? await resolveApiKey(process.env, raw) : null;
   if (!userId) return json({ error: 'invalid_key', message: 'API key is invalid or missing.' }, 401);
 
-  const models = Object.entries(MODELS).map(([id, m]) => ({
-    id, dev: m.dev, vision: m.vision, mult: m.mult, name: modelLabel(id),
-  }));
+  const models = Object.entries(MODELS).map(([id, m]) => {
+    const p = API_PRICING[id] || { in: 0, out: 0 };
+    const free = API_FREE.has(id);
+    return {
+      id, dev: m.dev, vision: m.vision, mult: m.mult, name: modelLabel(id),
+      free,
+      pricing: { input: p.in, output: p.out, currency: 'USD', per: '1M tokens' },
+    };
+  });
   const created = 1735689600; // 2025-01-01, стабильная метка для клиентов
   return json({
     object: 'list',
@@ -39,6 +45,8 @@ export default async function handler(req) {
       name: m.name,
       vision: m.vision,
       mult: m.mult,
+      free: m.free,
+      pricing: m.pricing,
     })),
     models,
   });

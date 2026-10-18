@@ -475,6 +475,26 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .docs-body h3 { font-size: 17px; font-weight: 600; margin: var(--sp-4) 0 var(--sp-1); }
 .docs-body p { color: var(--md-on-surface-variant); line-height: 1.5; margin-bottom: var(--sp-3); }
 .docs-body ul { color: var(--md-on-surface-variant); margin: 0 0 var(--sp-3) 20px; display: flex; flex-direction: column; gap: 6px; }
+.api-prices {
+  width: 100%; border-collapse: collapse; margin: 4px 0 var(--sp-3);
+  font-size: .88rem; font-variant-numeric: tabular-nums;
+}
+.api-prices th, .api-prices td {
+  padding: 9px 12px; text-align: left;
+  border-bottom: 1px solid var(--md-outline-variant);
+}
+.api-prices th {
+  font-size: .7rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--md-on-surface-variant);
+}
+.api-prices td:nth-child(2), .api-prices td:nth-child(3),
+.api-prices th:nth-child(2), .api-prices th:nth-child(3) { text-align: right; white-space: nowrap; }
+.api-prices tr:last-child td { border-bottom: none; }
+.api-prices .free { color: var(--md-mint); font-weight: 600; }
+@media (max-width: 620px) {
+  .api-prices th, .api-prices td { padding: 8px 8px; }
+  .api-prices { font-size: .82rem; }
+}
 .endpoint {
   display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
   padding: 13px 18px; border-radius: var(--r-md); background: var(--md-surface-container); border: 1px solid var(--md-outline-variant);

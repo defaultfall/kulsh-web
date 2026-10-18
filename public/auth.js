@@ -77,6 +77,7 @@
     google: '<svg viewBox="0 0 24 24" width="22" height="22"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.8-5.5 3.8-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.3 14.6 2.3 12 2.3 6.8 2.3 2.6 6.5 2.6 11.8S6.8 21.3 12 21.3c5.5 0 9.1-3.9 9.1-9.3 0-.6-.1-1.1-.2-1.6H12z"/></svg>',
     github: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>',
     telegram: '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="11" fill="#29A9EB"/><path fill="#fff" d="M5.4 11.8l11.2-4.3c.5-.2 1 .1.8.9l-1.9 9c-.1.6-.5.8-1 .5l-2.8-2.1-1.4 1.3c-.1.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2 0-.3-.3-.1l-6.4 4-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg>',
+    discord: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3c-.2.4-.4.9-.6 1.4a18.3 18.3 0 0 0-5.6 0C9 3.9 8.8 3.4 8.6 3a19.8 19.8 0 0 0-4.9 1.4C.5 9.2-.3 13.9.1 18.5A19.9 19.9 0 0 0 6.1 21c.5-.7.9-1.4 1.3-2.2-.7-.3-1.4-.6-2-1 .2-.1.3-.3.5-.4a14.2 14.2 0 0 0 12.2 0c.2.1.3.3.5.4-.6.4-1.3.7-2 1 .4.8.8 1.5 1.3 2.2a19.9 19.9 0 0 0 6-2.5c.5-5.3-.8-9.9-3.6-14.1ZM8 15.7c-1.2 0-2.2-1.1-2.2-2.4S6.8 10.9 8 10.9s2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>',
     lock: '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm-3 8V6a3 3 0 1 1 6 0v3H9z"/></svg>',
     close: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg>',
     check: '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>',
@@ -173,7 +174,7 @@
   let account = null;
   let topup = null;
   const fmtPts = (n) => (Math.round(Number(n) * 10) / 10).toString();
-  // Компактный формат токенов: 15000 → «15 тыс.» / «15K».
+  // Компактный формат токенов: 37500 → «37,5 тыс.» / «37.5K».
   function fmtTok(n) {
     const v = Math.max(0, Number(n) || 0);
     try {
@@ -183,7 +184,7 @@
 
   function usageHTML() {
     const s = tr();
-    const u = usage || { used: 0, limit: A.user ? 100000 : 15000, guest: !A.user };
+    const u = usage || { used: 0, limit: A.user ? 250000 : 37500, guest: !A.user };
     const pct = Math.max(0, Math.min(100, u.limit ? (u.used / u.limit) * 100 : 0));
     const left = Math.max(0, u.limit - u.used);
     const tone = pct >= 85 ? 'is-danger' : pct >= 60 ? 'is-warn' : '';
@@ -222,11 +223,12 @@
   function renderMenu() {
     const s = tr();
     const u = A.user || {};
-    const PROV_NAME = { google: 'Google', github: 'GitHub', telegram: 'Telegram', tg: 'Telegram', ds: 'Discord' };
+    const PROV_NAME = { google: 'Google', github: 'GitHub', telegram: 'Telegram', tg: 'Telegram', ds: 'Discord', discord: 'Discord' };
     const prov = PROV_NAME[u.provider] || ((u.provider || '')[0] ? u.provider[0].toUpperCase() + u.provider.slice(1) : '');
     const handle = u.handle || '';
     const ids = (account && account.identities) || [];
-    const provIcon = (p) => ICON[p === 'tg' ? 'telegram' : p] || '<span class="material-symbols-rounded">person</span>';
+    const ICON_ALIAS = { tg: 'telegram', ds: 'discord' };
+    const provIcon = (p) => ICON[ICON_ALIAS[p] || p] || '<span class="material-symbols-rounded">person</span>';
     const links = ids.map((x) => `
       <span class="acct-prov-chip">
         ${provIcon(x.provider)}
@@ -240,7 +242,7 @@
           <span class="acct-name">${esc(u.name || '')}</span>
           ${handle ? `<span class="acct-handle">${esc(handle)}</span>` : ''}
         </span>
-        ${prov ? `<span class="acct-provider">${ICON[u.provider] || ''}<span>${esc(prov)}</span></span>` : ''}
+        ${prov ? `<span class="acct-provider">${ICON[u.provider === 'ds' ? 'discord' : u.provider] || ''}<span>${esc(prov)}</span></span>` : ''}
       </div>
       ${usageHTML()}
       <div class="acct-links">
@@ -610,8 +612,11 @@
     const s = tr(); const p = A.providers; const on = ['google', 'github', 'telegram'].filter((k) => p[k]);
     let h = `<button class="icon-btn auth-close" id="authClose" type="button" aria-label="Close">${ICON.close}</button><div class="auth-glow"></div>`;
     if (A.user) {
+      const PN = { google: 'Google', github: 'GitHub', telegram: 'Telegram', tg: 'Telegram', ds: 'Discord', discord: 'Discord' };
+      const pv = A.user.provider === 'ds' ? 'discord' : A.user.provider;
+      const pname = PN[A.user.provider] || (pv ? pv[0].toUpperCase() + pv.slice(1) : '');
       h += `<div class="auth-hero">${avatarHTML(A.user, 'auth-av')}<h2>${esc(A.user.name)}</h2>
-        <span class="auth-chip">${ICON[A.user.provider] || ''}${s.via} ${esc(A.user.provider[0].toUpperCase() + A.user.provider.slice(1))}</span></div>
+        <span class="auth-chip">${ICON[pv] || ''}${s.via} ${esc(pname)}</span></div>
         <button class="btn btn-danger auth-logout" id="authLogout" type="button">${s.logout}</button>`;
     } else {
       h += `<div class="auth-hero"><img class="auth-logo" src="/assets/logo.png" alt=""><h2>${s.title}</h2><p>${s.sub}</p></div>`;

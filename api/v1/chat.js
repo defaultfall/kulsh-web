@@ -1,8 +1,8 @@
 // api/v1/chat.js — публичный API: стриминг ответа модели.
 //
 // Два режима:
-//   1) POST /api/v1/chat            — родной формат Kulsh ({ delta }, { done }).
-//   2) POST /api/v1/chat/completions — [OI]-совместимый Chat Completions
+//   1) POST /v1/chat            — родной формат Kulsh ({ delta }, { done }).
+//   2) POST /v1/chat/completions — [OI]-совместимый Chat Completions
 //      (stream: true → SSE-чанки, stream: false → один JSON). Именно этот
 //      режим нужен IDE, клиентам и любым [OI]-совместимым интеграциям.
 //

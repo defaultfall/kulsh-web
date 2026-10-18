@@ -15,8 +15,8 @@ import { getCookie, setCookie, signValue, readValue } from './_session.js';
 import { backend, pipeline } from './_store.js';
 import { normIdentity } from './_accounts.js';
 
-export const GUEST_TOKEN_LIMIT = 15000;    // токенов в сутки для гостя
-export const USER_TOKEN_LIMIT = 100000;    // токенов в сутки для залогиненного
+export const GUEST_TOKEN_LIMIT = 37500;    // токенов в сутки для гостя (×2.5)
+export const USER_TOKEN_LIMIT = 250000;    // токенов в сутки для залогиненного (×2.5)
 export const GUEST_COOKIE = 'kulsh_guest';
 
 // Грубая, но безопасная оценка: ~4 символа на токен (латиница/код),

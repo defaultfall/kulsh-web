@@ -1,5 +1,5 @@
 // api/v1/usage.js — публичный API: состояние дневного лимита аккаунта.
-//   GET /api/v1/usage   (Authorization: Bearer kulsh_sk_...)
+//   GET /v1/usage   (Authorization: Bearer kulsh_sk_...)
 import { resolveApiKey, apiKeyFromRequest } from '../_apikeys.js';
 import { readUsage } from '../_usage.js';
 
