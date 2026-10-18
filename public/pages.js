@@ -265,6 +265,10 @@
 
   // ---------- Таблица цен: официально vs Kulsh ----------
   const PRICING_ROWS = [
+    { logo: 'claude', tone: 'rose',  name: 'Claude Opus 5.5',   dev: 'Anthropic', official: [5.00, 25.00],  ours: [1.20, 6.00],  free: false },
+    { logo: 'claude', tone: 'mint',  name: 'Claude Sonnet 5.5', dev: 'Anthropic', official: [3.00, 15.00],  ours: [0.60, 3.20],  free: false },
+    { logo: 'claude', tone: 'amber', name: 'Claude Haiku 5.5',  dev: 'Anthropic', official: [1.00, 5.00],   ours: [0.40, 2.00],  free: false },
+    { logo: 'claude', tone: 'sky',   name: 'Claude Fable 5.1',  dev: 'Anthropic', official: [2.50, 12.50],  ours: [0, 0],        free: true },
     { logo: 'gemini',   tone: 'mint',  name: 'Gemini 2.5 Flash',      dev: 'Google DeepMind', official: [0.30, 2.50],  ours: [0, 0],       free: true },
     { logo: 'gemini',   tone: 'mint',  name: 'Gemini 3.5 Flash',      dev: 'Google DeepMind', official: [0.50, 3.00],  ours: [0, 0],       free: true },
     { logo: 'deepseek', tone: 'sky',   name: 'DeepSeek V4.1 Flash',   dev: 'DeepSeek',        official: [0.28, 0.42],  ours: [0, 0],       free: true },
