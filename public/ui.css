@@ -429,6 +429,105 @@ select {
 }
 @media (prefers-reduced-motion: reduce) { .pricing.is-in .pricing-row { animation: none; } }
 
+/* ---- Кастомные выпадающие списки (настройки) ---- */
+.cselect {
+  position: relative;
+  flex: 0 1 auto;
+  width: max-content;
+  min-width: 0;
+  max-width: min(260px, 100%);
+}
+.cselect-native {
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+}
+.cselect-btn {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; height: 38px; padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--md-outline-variant);
+  background: var(--md-surface-container);
+  color: var(--md-on-surface);
+  font-size: .82rem; font-weight: 500;
+  text-align: left;
+  transition: border-color var(--dur-s), background var(--dur-s), box-shadow var(--dur-s);
+}
+.cselect-btn:hover { border-color: var(--md-outline); background: var(--md-surface-container-high); }
+.cselect-btn:focus-visible {
+  outline: none;
+  border-color: var(--md-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-primary) 18%, transparent);
+}
+.cselect.is-open .cselect-btn { border-color: var(--md-primary); }
+.cselect-label {
+  min-width: 0; flex: 1 1 auto;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cselect-arrow {
+  flex: 0 0 18px;
+  font-size: 18px; line-height: 1;
+  color: var(--md-on-surface-variant);
+  transition: transform var(--dur-m) var(--ease-emphasized), color var(--dur-s);
+}
+.cselect.is-open .cselect-arrow { transform: rotate(180deg); color: var(--md-primary); }
+
+.cselect-menu {
+  position: fixed; z-index: 80;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--md-surface-container-high);
+  border: 1px solid color-mix(in srgb, var(--md-on-surface) 12%, transparent);
+  box-shadow: 0 18px 44px var(--md-shadow), 0 2px 8px color-mix(in srgb, var(--md-shadow) 55%, transparent);
+  overflow-y: auto; overscroll-behavior: contain;
+  animation: cselectIn .16s var(--ease-emphasized) both;
+}
+.cselect-menu[hidden] { display: none; }
+@keyframes cselectIn {
+  from { opacity: 0; transform: translateY(-4px) scale(.985); }
+  to   { opacity: 1; transform: none; }
+}
+.cselect-group {
+  padding: 8px 10px 4px;
+  font-size: .66rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--md-on-surface-variant);
+}
+.cselect-group:first-child { padding-top: 4px; }
+.cselect-option {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; height: 36px; padding: 0 10px;
+  border-radius: 10px;
+  font-size: .84rem; color: var(--md-on-surface);
+  text-align: left;
+  transition: background var(--dur-s), color var(--dur-s);
+}
+.cselect-option:hover, .cselect-option:focus-visible {
+  outline: none;
+  background: color-mix(in srgb, var(--md-on-surface) 8%, transparent);
+}
+.cselect-option.is-selected {
+  background: color-mix(in srgb, var(--md-primary) 14%, transparent);
+  color: var(--md-primary);
+}
+.cselect-option-text {
+  min-width: 0; flex: 1 1 auto;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cselect-check {
+  flex: 0 0 16px; font-size: 16px;
+  opacity: 0;
+}
+.cselect-option.is-selected .cselect-check { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .cselect-menu { animation: none; }
+  .cselect-arrow { transition: none; }
+}
+
 /* ---- Мобильная точность ---- */
 @media (max-width: 900px) {
   .messages { padding: 6px 12px; }
@@ -448,6 +547,8 @@ select {
   .msg-avatar .material-symbols-rounded { font-size: 18px; }
   .composer-tools { justify-content: flex-start; flex-wrap: nowrap; }
   .search-chip { flex: 0 0 auto; }
+  .cselect { width: 100%; max-width: 100%; }
+  .cselect-btn { height: 42px; }
 }
 @media (max-width: 760px) {
   .mnav .account-btn { padding: 0; width: 40px; justify-content: center; }

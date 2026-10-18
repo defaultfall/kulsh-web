@@ -94,7 +94,8 @@
       animatedBg: true,
       fontSize: 'md',
       sendOnEnter: true,
-      defaultModel: 'gemini-2.5-flash',
+      defaultModel: 'deepseek-v4.1-flash',
+      modelChosen: false,
       balanceView: 'rub',
       voiceAutoplay: false,
       voiceRate: 1,
@@ -117,6 +118,9 @@
       if (st.fontFamily === 'roboto') st.fontFamily = 'gsans';
       else if (st.fontFamily === 'flex') st.fontFamily = 'rflex';
       if (!st.effort) st.effort = 'medium';
+      // Миграция: раньше моделью по умолчанию был Gemini 2.5 Flash. Если
+      // пользователь её никогда не выбирал сам, переводим на DeepSeek V4.1 Flash.
+      if (!st.modelChosen && st.defaultModel === 'gemini-2.5-flash') st.defaultModel = 'deepseek-v4.1-flash';
       delete st.showAvatars; delete st.showNames; delete st.lottie;
       return st;
     } catch { return defaults; }
@@ -476,8 +480,12 @@
         opt.addEventListener('click', () => {
           if (locked) { closeModelPicker(); KA.open(KA.t().lockedModel); return; }
           const c = getActiveChat();
+          // Последняя выбранная модель запоминается в localStorage и
+          // используется как модель по умолчанию в новых чатах.
+          AppState.settings.defaultModel = m.id;
+          AppState.settings.modelChosen = true;
+          saveSettings(AppState.settings);
           if (c) { c.model = m.id; saveChats(AppState.chats); }
-          else { AppState.settings.defaultModel = m.id; saveSettings(AppState.settings); }
           renderModelPicker();
           renderComposerTools();
           closeModelPicker();
@@ -1943,6 +1951,151 @@
     }
   }
 
+  // ============================================================
+  // КАСТОМНЫЕ ВЫПАДАЮЩИЕ СПИСКИ (модель по умолчанию, голос)
+  // ============================================================
+  // Нативный <select> остаётся источником значения (и обработчиков change),
+  // но визуально рисуем свой список: ровный ритм, адаптивная ширина,
+  // аккуратная стрелка и меню поверх диалога (position: fixed).
+  const cselectMap = new WeakMap();
+  let openCSelect = null;
+
+  function cselectClose(st) {
+    if (!st || !st.open) return;
+    st.open = false;
+    st.menu.hidden = true;
+    st.wrap.classList.remove('is-open');
+    st.btn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('pointerdown', st.onOutside, true);
+    document.removeEventListener('keydown', st.onKey);
+    window.removeEventListener('resize', st.onReposition);
+    document.removeEventListener('scroll', st.onReposition, true);
+    if (openCSelect === st) openCSelect = null;
+  }
+
+  function cselectPosition(st) {
+    const r = st.btn.getBoundingClientRect();
+    const width = Math.min(Math.max(r.width, 220), Math.min(360, window.innerWidth - 24));
+    const left = Math.max(12, Math.min(r.left, window.innerWidth - width - 12));
+    st.menu.style.width = width + 'px';
+    st.menu.style.left = left + 'px';
+    const maxH = Math.min(340, window.innerHeight - 24);
+    st.menu.style.maxHeight = maxH + 'px';
+    const h = Math.min(st.menu.scrollHeight, maxH);
+    let top = r.bottom + 6;
+    if (top + h > window.innerHeight - 12) top = Math.max(12, r.top - h - 6);
+    st.menu.style.top = top + 'px';
+  }
+
+  function cselectOpen(st) {
+    if (st.open) return;
+    if (openCSelect && openCSelect !== st) cselectClose(openCSelect);
+    st.open = true;
+    openCSelect = st;
+    st.menu.hidden = false;
+    st.wrap.classList.add('is-open');
+    st.btn.setAttribute('aria-expanded', 'true');
+    cselectPosition(st);
+    const sel = st.menu.querySelector('.cselect-option.is-selected') || st.menu.querySelector('.cselect-option');
+    if (sel) { st.menu.scrollTop = Math.max(0, sel.offsetTop - 80); sel.focus({ preventScroll: true }); }
+    st.onOutside = (e) => {
+      if (!st.wrap.contains(e.target) && !st.menu.contains(e.target)) cselectClose(st);
+    };
+    st.onKey = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); cselectClose(st); st.btn.focus(); return; }
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      e.preventDefault();
+      const items = Array.from(st.menu.querySelectorAll('.cselect-option'));
+      if (!items.length) return;
+      const i = items.indexOf(document.activeElement);
+      const next = e.key === 'ArrowDown'
+        ? items[Math.min(items.length - 1, i + 1)]
+        : items[Math.max(0, i - 1)];
+      if (next) next.focus();
+    };
+    st.onReposition = () => cselectPosition(st);
+    document.addEventListener('pointerdown', st.onOutside, true);
+    document.addEventListener('keydown', st.onKey);
+    window.addEventListener('resize', st.onReposition);
+    document.addEventListener('scroll', st.onReposition, true);
+  }
+
+  function cselectSync(select) {
+    const st = cselectMap.get(select);
+    if (!st) return;
+    const val = select.value;
+    st.menu.innerHTML = '';
+    let current = '';
+    const addOption = (opt) => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'cselect-option' + (opt.value === val ? ' is-selected' : '');
+      item.dataset.value = opt.value;
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', String(opt.value === val));
+      item.innerHTML = `<span class="cselect-option-text">${escapeHtml(opt.textContent)}</span><span class="material-symbols-rounded cselect-check" aria-hidden="true">check</span>`;
+      item.addEventListener('click', () => {
+        select.value = opt.value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        cselectClose(st);
+        cselectSync(select);
+      });
+      st.menu.appendChild(item);
+      if (opt.value === val) current = opt.textContent;
+    };
+    Array.from(select.children).forEach((node) => {
+      if (node.tagName === 'OPTGROUP') {
+        const head = document.createElement('div');
+        head.className = 'cselect-group';
+        head.textContent = node.label;
+        st.menu.appendChild(head);
+        Array.from(node.children).forEach(addOption);
+      } else if (node.tagName === 'OPTION') {
+        addOption(node);
+      }
+    });
+    const label = current || (select.options[0] ? select.options[0].textContent : '');
+    st.label.textContent = label;
+    st.label.title = label;
+  }
+
+  function enhanceSelect(select) {
+    if (!select) return;
+    if (cselectMap.has(select)) { cselectSync(select); return; }
+    const wrap = document.createElement('div');
+    wrap.className = 'cselect';
+    select.parentNode.insertBefore(wrap, select);
+    wrap.appendChild(select);
+    select.classList.add('cselect-native');
+    select.setAttribute('aria-hidden', 'true');
+    select.tabIndex = -1;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cselect-btn';
+    btn.setAttribute('aria-haspopup', 'listbox');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.innerHTML = '<span class="cselect-label"></span><span class="material-symbols-rounded cselect-arrow" aria-hidden="true">expand_more</span>';
+
+    const menu = document.createElement('div');
+    menu.className = 'cselect-menu';
+    menu.setAttribute('role', 'listbox');
+    menu.hidden = true;
+
+    wrap.appendChild(btn);
+    document.body.appendChild(menu);
+
+    const st = { select, wrap, btn, menu, label: btn.firstElementChild, open: false };
+    cselectMap.set(select, st);
+    btn.addEventListener('click', () => { st.open ? cselectClose(st) : cselectOpen(st); });
+    select.addEventListener('change', () => cselectSync(select));
+    cselectSync(select);
+  }
+
+  function closeAllCSelect() {
+    if (openCSelect) cselectClose(openCSelect);
+  }
+
   function populateVoiceList() {
     if (!window.speechSynthesis) return;
     const voices = window.speechSynthesis.getVoices();
@@ -1954,6 +2107,7 @@
       if (v.voiceURI === AppState.settings.voiceURI) opt.selected = true;
       el.voiceSelect.appendChild(opt);
     });
+    enhanceSelect(el.voiceSelect);
   }
 
   function speakText(text) {
@@ -1979,6 +2133,7 @@
     requestAnimationFrame(() => { refreshAllSliderFills(); autoGrowAllTextareas(); });
   }
   function closeSettings() {
+    closeAllCSelect();
     el.settingsBackdrop.classList.remove('is-open');
     el.settingsDialog.classList.remove('is-open');
   }
@@ -2006,6 +2161,7 @@
       });
       el.defaultModelSelect.appendChild(group);
     });
+    enhanceSelect(el.defaultModelSelect);
   }
 
   // Принимает ли текущая модель вложения (DeepSeek V4 Pro — без зрения).
@@ -2572,6 +2728,7 @@
 
     el.defaultModelSelect.addEventListener('change', () => {
       AppState.settings.defaultModel = el.defaultModelSelect.value;
+      AppState.settings.modelChosen = true;
       saveSettings(AppState.settings);
       renderComposerTools();
       renderModelPicker();
