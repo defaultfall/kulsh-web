@@ -50,7 +50,7 @@
       'feat.6.t': 'Синхронизация', 'feat.6.d': 'История и настройки сохраняются в аккаунте и доступны на всех твоих устройствах.',
       'models.eyebrow': 'Модели', 'models.h2': 'Официальные цены — и наши',
       'models.p': 'Сравни, сколько стоит миллион токенов у разработчика и сколько у нас. Бесплатные модели входят в дневной лимит, платные списываются с общего баланса.',
-      'pricing.note': 'Цены за 1 млн токенов, вход / выход. Официальные — публичные тарифы разработчиков; у нас — цены Kulsh. Экономия считается по средней цене входа и выхода.',
+      'pricing.note': 'Цены за 1 млн токенов, вход / выход. Официальные — публичные тарифы разработчиков (ориентировочно); у нас — цены Kulsh. Экономия считается по средней цене входа и выхода.',
       'pricing.official': 'Официально', 'pricing.ours': 'У нас', 'pricing.save': 'Экономия', 'pricing.free': 'в лимите', 'pricing.model': 'Модель',
       'tag.generous': 'щедро', 'tag.limited': 'ограниченный лимит', 'tag.novision': 'без зрения',
       'm.gemini.d': 'Стабильные и быстрые модели Google — универсальный выбор на каждый день.',
@@ -121,7 +121,7 @@
       'feat.6.t': 'Sync', 'feat.6.d': 'History and settings are saved to your account and available on all your devices.',
       'models.eyebrow': 'Models', 'models.h2': 'Official prices — and ours',
       'models.p': 'Compare what a million tokens costs from the developer and from us. Free models are covered by the daily limit, paid ones are charged to the shared balance.',
-      'pricing.note': 'Prices per 1M tokens, input / output. Official prices are the developers’ public rates; ours are Kulsh prices. Savings use the average of input and output.',
+      'pricing.note': 'Prices per 1M tokens, input / output. Official prices are the developers’ public rates (approximate); ours are Kulsh prices. Savings use the average of input and output.',
       'pricing.official': 'Official', 'pricing.ours': 'Ours', 'pricing.save': 'Savings', 'pricing.free': 'in the limit', 'pricing.model': 'Model',
       'tag.generous': 'generous', 'tag.limited': 'limited limit', 'tag.novision': 'no vision',
       'm.gemini.d': 'Stable and fast Google models — a universal everyday choice.',
@@ -265,10 +265,10 @@
 
   // ---------- Таблица цен: официально vs Kulsh ----------
   const PRICING_ROWS = [
-    { logo: 'claude', tone: 'rose',  name: 'Claude Opus 5.5',   dev: 'Anthropic', official: [5.00, 25.00],  ours: [1.20, 6.00],  free: false },
-    { logo: 'claude', tone: 'mint',  name: 'Claude Sonnet 5.5', dev: 'Anthropic', official: [3.00, 15.00],  ours: [0.60, 3.20],  free: false },
-    { logo: 'claude', tone: 'amber', name: 'Claude Fable 5.1',  dev: 'Anthropic', official: [1.00, 5.00],   ours: [0.40, 2.00],  free: false },
-    { logo: 'claude', tone: 'sky',   name: 'Claude Haiku 5.5',  dev: 'Anthropic', official: [2.50, 12.50],  ours: [0, 0],        free: true },
+    { logo: 'claude', tone: 'rose', name: 'Claude Opus 5.5', dev: 'Anthropic', official: [5.00, 25.00], ours: [0.60, 3.20], free: false },
+    { logo: 'claude', tone: 'mint', name: 'Claude Sonnet 5.5', dev: 'Anthropic', official: [3.00, 15.00], ours: [0.40, 2.00], free: false },
+    { logo: 'claude', tone: 'amber', name: 'Claude Fable 5.1', dev: 'Anthropic', official: [2.50, 12.50], ours: [1.20, 6.00], free: false },
+    { logo: 'claude', tone: 'sky', name: 'Claude Haiku 5.5', dev: 'Anthropic', official: [1.00, 5.00], ours: [0.00, 0.00], free: true },
     { logo: 'gemini',   tone: 'mint',  name: 'Gemini 2.5 Flash',      dev: 'Google DeepMind', official: [0.30, 2.50],  ours: [0, 0],       free: true },
     { logo: 'gemini',   tone: 'mint',  name: 'Gemini 3.5 Flash',      dev: 'Google DeepMind', official: [0.50, 3.00],  ours: [0, 0],       free: true },
     { logo: 'deepseek', tone: 'sky',   name: 'DeepSeek V4.1 Flash',   dev: 'DeepSeek',        official: [0.28, 0.42],  ours: [0, 0],       free: true },
