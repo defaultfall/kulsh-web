@@ -84,11 +84,7 @@ function openaiStream(res, model) {
               send({
                 id, object: 'chat.completion.chunk', created, model,
                 choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
-                usage: {
-                  prompt_tokens: 0,
-                  completion_tokens: 0,
-                  total_tokens: (o.usage && Number(o.usage.used)) || 0,
-                },
+                usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
               });
             }
           });
@@ -181,6 +177,6 @@ export default async function handler(req) {
     created: Math.floor(Date.now() / 1000),
     model,
     choices: [{ index: 0, message: { role: 'assistant', content: text }, finish_reason: 'stop' }],
-    usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: usage },
+    usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
   });
 }
