@@ -22,6 +22,10 @@
       "destination": "/api/v1/models"
     },
     {
+      "source": "/v1/usage",
+      "destination": "/api/v1/usage"
+    },
+    {
       "source": "/chat",
       "destination": "/chat/index.html"
     },

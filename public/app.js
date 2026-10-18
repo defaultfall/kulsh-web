@@ -354,7 +354,7 @@
       });
       item.querySelector('.chat-delete').addEventListener('click', (e) => {
         e.stopPropagation();
-        deleteChat(chat.id);
+        askDeleteChat(chat);
       });
       el.chatList.appendChild(item);
     });
@@ -365,6 +365,57 @@
     renderChatList(el.chatSearch.value);
     renderMessages();
     closeSidebarOnMobile();
+  }
+
+  // Подтверждение в стиле сайта вместо системного confirm().
+  function siteConfirm(opts) {
+    return new Promise((resolve) => {
+      const backdrop = document.createElement('div');
+      backdrop.className = 'dialog-backdrop is-open';
+      const dlg = document.createElement('div');
+      dlg.className = 'dialog confirm-dialog is-open';
+      dlg.setAttribute('role', 'dialog');
+      dlg.setAttribute('aria-modal', 'true');
+      dlg.innerHTML = `
+        <div class="dialog-header">
+          <h2></h2>
+          <button class="icon-btn" type="button" data-close>
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+        <div class="dialog-body">
+          <p class="confirm-text"></p>
+          <div class="confirm-actions">
+            <button class="btn btn-tonal" type="button" data-cancel></button>
+            <button class="btn ${opts.danger ? 'btn-danger' : 'btn-filled'}" type="button" data-ok></button>
+          </div>
+        </div>`;
+      dlg.querySelector('h2').textContent = opts.title || '';
+      dlg.querySelector('.confirm-text').textContent = opts.text || '';
+      dlg.querySelector('[data-cancel]').textContent = opts.cancelLabel || window.t('chat.cancel');
+      dlg.querySelector('[data-ok]').textContent = opts.okLabel || 'OK';
+      dlg.querySelector('[data-close]').setAttribute('aria-label', window.t('chat.cancel'));
+      const done = (v) => {
+        document.removeEventListener('keydown', onKey);
+        backdrop.remove(); dlg.remove(); resolve(v);
+      };
+      const onKey = (e) => { if (e.key === 'Escape') done(false); };
+      dlg.querySelectorAll('[data-close],[data-cancel]').forEach((b) => b.addEventListener('click', () => done(false)));
+      dlg.querySelector('[data-ok]').addEventListener('click', () => done(true));
+      backdrop.addEventListener('click', () => done(false));
+      document.addEventListener('keydown', onKey);
+      document.body.append(backdrop, dlg);
+      dlg.querySelector('[data-cancel]').focus();
+    });
+  }
+
+  function askDeleteChat(chat) {
+    siteConfirm({
+      title: window.t('chat.deleteTitle'),
+      text: window.t('chat.deleteText'),
+      okLabel: window.t('chat.deleteConfirm'),
+      danger: true,
+    }).then((ok) => { if (ok) deleteChat(chat.id); });
   }
 
   function deleteChat(id) {
@@ -685,18 +736,21 @@
   }
   function flashCopied(btn, text) {
     copyText(text).catch(() => {});
-    const parent = btn.parentNode;
-    if (!parent) return;
-    let flash = parent.querySelector('.copy-flash');
-    if (!flash) {
-      flash = document.createElement('span');
-      flash.className = 'copy-flash';
-      parent.insertBefore(flash, btn.nextSibling);
-    }
+    document.querySelectorAll('.copy-flash').forEach((n) => n.remove());
+    const flash = document.createElement('span');
+    flash.className = 'copy-flash';
     flash.textContent = window.t('chat.copied');
-    flash.classList.add('is-on');
-    clearTimeout(flash._t);
-    flash._t = setTimeout(() => flash.classList.remove('is-on'), 1500);
+    document.body.appendChild(flash);
+    const r = btn.getBoundingClientRect();
+    const placeLeft = r.left > 160;
+    flash.style.top = (r.top + r.height / 2) + 'px';
+    flash.style.left = (placeLeft ? r.left - 8 : r.right + 8) + 'px';
+    flash.style.transform = placeLeft ? 'translate(-100%, -50%)' : 'translate(0, -50%)';
+    requestAnimationFrame(() => flash.classList.add('is-on'));
+    setTimeout(() => {
+      flash.classList.remove('is-on');
+      setTimeout(() => flash.remove(), 220);
+    }, 1400);
   }
 
   // ---------- Безопасная отрисовка HTML (превью скиллов/файлов) ----------
@@ -1473,34 +1527,18 @@
     el.composerInput.style.height = Math.min(el.composerInput.scrollHeight, 200) + 'px';
   }
 
-  function modelSupportsSearch(id) {
-    const m = modelById(id);
-    return !!m && m.provider === 'google';
-  }
-
-  function currentComposerModel() {
-    const chat = getActiveChat();
-    return window.KulshAuth.guest ? window.KulshAuth.GUEST_MODEL
-      : (chat ? chat.model : AppState.settings.defaultModel);
-  }
-
+  // Поиск работает у всех моделей: сервер сам ищет в интернете и передаёт
+  // результаты в контекст, как это делает бот.
   function renderComposerTools() {
     const effort = AppState.settings.effort || 'medium';
     $$('.effort-chip').forEach((b) => b.classList.toggle('is-active', b.dataset.effort === effort));
     if (!el.webSearchToggle) return;
-    const supported = modelSupportsSearch(currentComposerModel());
-    if (!supported && AppState.settings.webSearch) {
-      AppState.settings.webSearch = false;
-      saveSettings(AppState.settings);
-    }
     const on = !!AppState.settings.webSearch;
     el.webSearchToggle.classList.toggle('is-active', on);
-    el.webSearchToggle.classList.toggle('is-disabled', !supported);
+    el.webSearchToggle.classList.remove('is-disabled');
     el.webSearchToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
-    el.webSearchToggle.disabled = !supported;
-    el.webSearchToggle.title = supported
-      ? window.t('composer.search')
-      : (AppState.settings.lang === 'en' ? 'Web search works with Gemini models' : 'Поиск работает на моделях Gemini');
+    el.webSearchToggle.disabled = false;
+    el.webSearchToggle.title = window.t('composer.search');
   }
 
   function setSendingState(isSending) {
@@ -1647,7 +1685,7 @@
             messages: payload.messages,
             model: window.KulshAuth.guest ? window.KulshAuth.GUEST_MODEL : chat.model,
             temperature: AppState.settings.temperature,
-            webSearch: !!AppState.settings.webSearch && modelSupportsSearch(window.KulshAuth.guest ? window.KulshAuth.GUEST_MODEL : chat.model),
+            webSearch: !!AppState.settings.webSearch,
             customPrompt: cp,
             skillsPrompt,
             recall: recallPass,
@@ -2319,7 +2357,6 @@
     });
     if (el.webSearchToggle) {
       el.webSearchToggle.addEventListener('click', () => {
-        if (!modelSupportsSearch(currentComposerModel())) return;
         AppState.settings.webSearch = !AppState.settings.webSearch;
         saveSettings(AppState.settings);
         renderComposerTools();
@@ -2554,14 +2591,20 @@
     });
 
     el.clearChatsBtn.addEventListener('click', () => {
-      if (confirm(window.t('confirm.clearChats'))) {
+      siteConfirm({
+        title: window.t('confirm.clearTitle'),
+        text: window.t('confirm.clearChats'),
+        okLabel: window.t('chat.deleteConfirm'),
+        danger: true,
+      }).then((ok) => {
+        if (!ok) return;
         AppState.chats = [];
         AppState.activeChatId = null;
         saveChats(AppState.chats);
         renderChatList();
         renderMessages();
         closeSettings();
-      }
+      });
     });
 
     if (window.speechSynthesis) {

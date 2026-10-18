@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="/fonts/fonts-v2.css" />
 
 <script>try{var s=JSON.parse(localStorage.getItem("kulshgpt.settings.v1")||"{}"),r=document.documentElement,t=s.theme||"dark";if(t==="system")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";r.dataset.theme=t;r.dataset.accent=s.accent||"violet";r.lang=s.lang||"ru"}catch(e){}</script>
-<link rel="stylesheet" href="/auth.css?v=20261024" />
+<link rel="stylesheet" href="/auth.css?v=20261026" />
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.4/dist/lottie-player.js"></script>
 
@@ -390,7 +390,7 @@ input { font: inherit; color: inherit; }
 :root[data-theme="light"][data-accent="amber"]  { --md-primary:#8A5A00; --md-primary-container:#FFE0A6; --md-on-primary-container:#2A1900; }
 
 </style>
-<link rel="stylesheet" href="/ui.css?v=20261024" />
+<link rel="stylesheet" href="/ui.css?v=20261026" />
 </head>
 <body>
 
@@ -403,7 +403,7 @@ input { font: inherit; color: inherit; }
 </div>
 
 <header class="donate-header">
-  <a class="icon-btn" href="/" aria-label="На главную" data-i18n-aria="back">
+  <a class="icon-btn" href="/" id="backBtn" aria-label="Назад" data-i18n-aria="back">
     <span class="material-symbols-rounded">arrow_back</span>
   </a>
   <span class="title" data-i18n="title">Поддержать KulshAI</span>
@@ -481,12 +481,12 @@ input { font: inherit; color: inherit; }
   <p class="footer">© 2026 KulshAI · Open Source · <a href="/privacy/" style="color:inherit" data-i18n="priv">Политика конфиденциальности</a></p>
 </main>
 
-<script src="/auth.js?v=20261024"></script>
+<script src="/auth.js?v=20261026"></script>
 <script>
 (function(){
-  var D={en:{"title": "Support KulshAI", "h1": "Support Kulsh", "lead": "Funds go to servers, hosting and higher AI limits.", "s1": "1. Amount", "s2": "2. Payment method", "other": "Other amount", "rec": "Recommended", "daSub": "Russian cards, SBP, YooMoney, QIWI, crypto", "note": "When paying with Stars you will be redirected to the bot chat, which instantly issues an official Telegram Stars invoice.", "back": "Back to home", "priv": "Privacy Policy"}};
+  var D={en:{"title": "Support KulshAI", "h1": "Support Kulsh", "lead": "Funds go to servers, hosting and higher AI limits.", "s1": "1. Amount", "s2": "2. Payment method", "other": "Other amount", "rec": "Recommended", "daSub": "Russian cards, SBP, YooMoney, QIWI, crypto", "note": "When paying with Stars you will be redirected to the bot chat, which instantly issues an official Telegram Stars invoice.", "back": "Back", "priv": "Privacy Policy"}};
   var ru={}; document.querySelectorAll('[data-i18n]').forEach(function(e){ru[e.dataset.i18n]=e.innerHTML.trim();});
-  ru.other='Другая сумма'; ru.back='На главную';
+  ru.other='Другая сумма'; ru.back='Назад';
   function lang(){try{return JSON.parse(localStorage.getItem('kulshgpt.settings.v1')).lang==='en'?'en':'ru'}catch(e){return 'ru'}}
   window.donateLang=lang;
   function apply(){
@@ -513,6 +513,12 @@ input { font: inherit; color: inherit; }
 <script>
 (function () {
   'use strict';
+
+  // «Назад» возвращает на предыдущую страницу, а при прямом заходе — на главную.
+  var backBtn = document.getElementById('backBtn');
+  if (backBtn) backBtn.addEventListener('click', function (e) {
+    if (history.length > 1) { e.preventDefault(); history.back(); }
+  });
 
   // Telegram WebApp init (если открыто внутри Telegram)
   var tg = window.Telegram && window.Telegram.WebApp;

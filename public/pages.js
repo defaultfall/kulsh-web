@@ -87,7 +87,7 @@
       'docs.wip': 'API работает. Ключ создаётся в аккаунте — открой меню аккаунта (аватар в правом верхнем углу) → API. Один ключ подходит и для API, и для веб-чата.',
       'docs.nav.overview': 'Обзор', 'docs.nav.auth': 'Аутентификация', 'docs.nav.chat': 'POST /v1/chat', 'docs.nav.models': 'Модели', 'docs.nav.usage': 'Лимиты и usage', 'docs.nav.errors': 'Ошибки',
       'docs.overview.p': 'API принимает сообщения и возвращает ответ модели потоком (Server-Sent Events). Формат совместим с распространённой схемой чат-комплишенов, поэтому подключается обычным HTTP-клиентом.',
-      'docs.overview.l1': 'Базовый адрес: <code>https://kulsh.vercel.app/api/v1</code>',
+      'docs.overview.l1': 'Базовый URL: <code>https://kulsh.vercel.app/api/v1</code>',
       'docs.overview.l2': 'Формат: JSON, ответ — поток событий <code>text/event-stream</code>',
       'docs.overview.l3': 'Аутентификация: заголовок <code>Authorization: Bearer &lt;API_KEY&gt;</code>',
       'docs.auth.p': 'Ключ создаётся в аккаунте Kulsh (меню аккаунта → API). Один ключ работает и для веб-чата, и для API, а расход идёт с общего баланса и дневного лимита.',

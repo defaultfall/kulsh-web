@@ -105,10 +105,16 @@ select {
 .auth-code-row .text-input,
 .promo-code-row .text-input {
   text-transform: none;
-  letter-spacing: normal;
-  font-family: var(--font-body);
+  letter-spacing: .01em;
+  font-family: var(--font-mono);
   font-size: .95rem;
   height: 44px;
+}
+/* Подпись и адрес в API — тем же моноширинным набором, что и код. */
+.api-base-label {
+  font-family: var(--font-mono);
+  font-size: .76rem;
+  letter-spacing: .04em;
 }
 .link-code-row .text-input::placeholder,
 .auth-code-row .text-input::placeholder { text-transform: none; letter-spacing: normal; }
@@ -116,12 +122,38 @@ select {
 .auth-code-row .btn { height: 44px; }
 
 /* ---- Диалоги: один и тот же ритм отступов во всех окнах ---- */
-.dialog-header { padding: 10px 18px 4px; }
-.dialog-body { padding: 2px 18px 10px; }
-.settings-note { padding: 4px 4px 10px; }
+/* Крестик выравниваем по глифу, а не по краю круглой кнопки:
+   справа 10px padding + 8px внутреннего поля кнопки = 18px до глифа,
+   ровно столько же, сколько сверху. */
+.dialog-header { padding: 10px 10px 4px 18px; }
+.dialog-body { padding: 2px 18px 18px; }
+.dialog-body.preview-body { padding: 0 2px 4px; }
+.settings-note { padding: 6px 4px 12px; font-size: .88rem; line-height: 1.6; }
+.skills-hint { font-size: .84rem; line-height: 1.55; }
 .auth-dialog { padding: 18px 20px 16px; gap: 12px; }
 .auth-hero { padding-top: 0; }
 .link-body { gap: 10px; }
+
+/* ---- Подтверждение действий (удаление чата и т. п.) ---- */
+.confirm-dialog { width: min(400px, calc(100vw - 28px)); }
+.confirm-text { font-size: .92rem; line-height: 1.55; color: var(--md-on-surface-variant); padding: 2px 2px 18px; }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.skills-actions .btn { padding-left: 17px; }
+
+/* ---- «Скопировано»: всплывашка слева от кнопки, без сдвига layout ---- */
+.copy-flash {
+  position: fixed; z-index: 60; margin: 0;
+  padding: 5px 10px; border-radius: 999px;
+  background: var(--md-surface-container-highest);
+  border: 1px solid var(--md-outline-variant);
+  color: var(--md-on-surface);
+  font-family: var(--font-body);
+  font-size: .78rem; font-weight: 500; line-height: 1;
+  white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity var(--dur-s) var(--ease-standard);
+  box-shadow: 0 8px 22px -12px var(--md-shadow);
+}
+.copy-flash.is-on { opacity: 1; }
 
 /* ---- Кнопка аккаунта: ровная капсула и на лендинге, и в чате ---- */
 .account-btn {
@@ -160,9 +192,18 @@ select {
   width: 24px; height: 24px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
   object-fit: cover; font-size: 11px; font-weight: 600;
+  transform: translateY(-0.5px);
 }
+.account-btn .acc-slot img.account-av { display: block; }
 .account-btn .acc-slot .av-fallback { background: var(--md-primary-container); color: var(--md-on-primary-container); }
-.mnav .account-btn { height: 40px; padding: 0 14px; }
+/* Аватар ближе к левому краю капсулы; справа остаётся место под последний
+   символ никнейма. На мобильных кнопка остаётся квадратной 40×40. */
+.mnav .account-btn { height: 40px; }
+@media (min-width: 761px) { .mnav .account-btn { padding: 0 14px 0 8px; } }
+
+/* В шапке чата логотип держим на таком же расстоянии от края, как и
+   контент композера, — иначе он визуально «прилипает» к правому краю. */
+@media (min-width: 901px) { .topbar { padding-right: 28px; } }
 
 /* ---- Модели: логотипы вместо Material-иконок ---- */
 .model-option-icon {

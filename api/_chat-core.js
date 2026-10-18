@@ -16,6 +16,7 @@ import { GUEST_MODEL, FALLBACK_MODEL, isAllowed, modelInfo, isPaid, costKopecks,
 import { PROVIDERS, canonicalMessages } from './_providers.js';
 import { guestIdentity, readUsage, hasRoom, charge, estimateTokens } from './_usage.js';
 import { readBalance, chargeBalance } from './_accounts.js';
+import { webSearch, formatSearchResults } from './_search.js';
 
 // Гости: только одна модель, без вложений и кастомизации, короткая история.
 const GUEST_MAX_MESSAGES = 20;
@@ -209,7 +210,10 @@ export async function runChat(req, ctx = {}) {
 
   const selectedModel = isAllowed(model) ? model : FALLBACK_MODEL;
   const selectedInfo = modelInfo(selectedModel);
-  const searchOn = !!webSearch && !!selectedInfo && selectedInfo.provider === 'google';
+  // Поиск доступен у всех моделей. У Gemini используем нативный grounding,
+  // у остальных — собственный поиск (DuckDuckGo + Wikipedia), как в боте.
+  const searchOn = !!webSearch;
+  const nativeSearch = searchOn && !!selectedInfo && selectedInfo.provider === 'google';
 
   const hasAnyMedia = contents.some((m) => m.media && m.media.length);
   if (hasAnyMedia && selectedInfo && selectedInfo.vision === false) {
@@ -248,6 +252,19 @@ export async function runChat(req, ctx = {}) {
     }
   }
 
+  // ---- Веб-поиск для моделей без нативного grounding ----
+  let searchContext = '';
+  if (searchOn && !nativeSearch) {
+    const lastUserMsg = [...contents].reverse().find((m) => m && m.role === 'user');
+    const query = String((lastUserMsg && lastUserMsg.text) || '').trim().slice(0, 300);
+    if (query) {
+      try {
+        const hits = await webSearch(query, 6);
+        if (hits.length) searchContext = formatSearchResults(hits);
+      } catch { /* поиск не должен ломать ответ */ }
+    }
+  }
+
   const lastUser = Array.isArray(messages) ? [...messages].reverse().find((m) => m && m.role === 'user') : null;
   const newMedia = !!(lastUser && Array.isArray(lastUser.attachments) && lastUser.attachments.some((a) => a && a.data));
   const note = recallNote({ newMedia, recallPass: !!recall, hasOldMedia: !!hasOldMedia });
@@ -265,6 +282,11 @@ export async function runChat(req, ctx = {}) {
   }
   if (isContinue) {
     systemText += '\n\nПРОДОЛЖЕНИЕ. Предыдущий ответ оборвался на середине. Продолжи его ровно с того места, где он остановился: без вступлений, без повторов уже сказанного и без извинений. Просто продолжай текст или код.';
+  }
+  if (searchContext) {
+    systemText += '\n\nРЕЗУЛЬТАТЫ ВЕБ-ПОИСКА (свежие данные из интернета; используй их по делу и ссылайся на источники):\n' + searchContext;
+  } else if (searchOn && !nativeSearch) {
+    systemText += '\n\nПОЛЬЗОВАТЕЛЬ ВКЛЮЧИЛ ВЕБ-ПОИСК, но результаты получить не удалось. Ответь по своим знаниям и честно скажи, что свежие данные сейчас недоступны.';
   }
 
   const modelsToTry = [selectedModel];
@@ -336,7 +358,7 @@ export async function runChat(req, ctx = {}) {
       try {
         const res = await provider.open({
           model: mdl, key: order[ki], messages: contents, systemText, temperature,
-          webSearch: searchOn,
+          webSearch: nativeSearch,
           signal: ctrl.signal, env: process.env,
         });
         clearTimeout(timer);
