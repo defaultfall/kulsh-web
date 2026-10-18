@@ -27,10 +27,11 @@ export const MODELS = {
   'gemini-3.8-flash':      { provider: 'google', dev: 'google', vision: true,  mult: 3,   label: 'Gemini 3.8 Flash' },
 
   // ---- DeepSeek ----
-  'deepseek-v4.1-flash':   { provider: 'neutralbeats', dev: 'deepseek', vision: true,  mult: 1, label: 'DeepSeek V4.1 Flash' },
+  // V4.1 Flash — повседневная модель: расход лимита в 10 раз ниже обычного.
+  'deepseek-v4.1-flash':   { provider: 'neutralbeats', dev: 'deepseek', vision: true,  mult: 0.1, label: 'DeepSeek V4.1 Flash' },
   'deepseek-v4-pro':       { provider: 'neutralbeats', dev: 'deepseek', vision: false, mult: 2, label: 'DeepSeek V4 Pro' },
   // ---- Z.AI ----
-  'glm-5.3-flash':         { provider: 'neutralbeats', dev: 'zai', vision: true,  mult: 1, label: 'GLM 5.3 Flash' },
+  'glm-5.3-flash':         { provider: 'neutralbeats', dev: 'zai', vision: true,  mult: 0.1, label: 'GLM 5.3 Flash' },
   // ---- Moonshot AI ----
   'kimi-k3':               { provider: 'neutralbeats', dev: 'moonshot', vision: true,  mult: 3, label: 'Kimi K3' },
   // ---- [OI] ----
@@ -60,21 +61,22 @@ export const PRICING = {
 export const API_PRICING = {
   ...PRICING,
   // Anthropic
-  'claude-haiku-5-5':       { in: 0.12, out: 0.58 },
-  // Google DeepMind
-  'gemini-2.5-flash':       { in: 0.45, out: 3.75 },
-  'gemini-2.5-flash-lite':  { in: 0.15, out: 0.60 },
-  'gemini-3.5-flash':       { in: 0.75, out: 4.50 },
-  'gemini-3.5-flash-lite':  { in: 0.15, out: 0.60 },
-  'gemini-3.6-flash':       { in: 0.75, out: 4.50 },
-  'gemini-3.7-flash':       { in: 0.75, out: 4.50 },
-  'gemini-3.8-flash':       { in: 0.75, out: 4.50 },
+  'claude-haiku-5-5':       { in: 0.08, out: 0.40 },
+  // Google DeepMind — почти по себестоимости, чтобы быть дешевле официальных
+  // цен по каждому тарифу, а не только в среднем.
+  'gemini-2.5-flash':       { in: 0.02, out: 0.18 },
+  'gemini-2.5-flash-lite':  { in: 0.01, out: 0.05 },
+  'gemini-3.5-flash':       { in: 0.04, out: 0.25 },
+  'gemini-3.5-flash-lite':  { in: 0.01, out: 0.05 },
+  'gemini-3.6-flash':       { in: 0.04, out: 0.25 },
+  'gemini-3.7-flash':       { in: 0.04, out: 0.25 },
+  'gemini-3.8-flash':       { in: 0.04, out: 0.25 },
   // DeepSeek
   'deepseek-v4-pro':        { in: 0.29, out: 1.15 },
   // Moonshot AI
   'kimi-k3':                { in: 0.23, out: 1.30 },
   // [OI]
-  'gpt-6-luna':             { in: 0.13, out: 0.61 },
+  'gpt-6-luna':             { in: 0.08, out: 0.40 },
   'gpt-6.1-sol':            { in: 0.18, out: 0.90 },
   // Бесплатные в API
   'deepseek-v4.1-flash':    { in: 0, out: 0 },

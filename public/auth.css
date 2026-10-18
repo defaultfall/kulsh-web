@@ -304,6 +304,11 @@
 /* Заглушка баланса (общий для чата и API) */
 .acct-balance { display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: .8rem; color: var(--md-on-surface-variant); }
 .acct-balance .material-symbols-rounded { font-size: 18px; color: var(--md-primary); }
+.acct-balance-val { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.acct-balance-alt {
+  font-size: .7rem; opacity: .8; color: var(--md-on-surface-variant);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .acct-soon { margin-left: auto; font-size: .68rem; padding: 3px 8px; border-radius: 999px; background: color-mix(in srgb, var(--md-on-surface) 8%, transparent); }
 
 /* Пункты меню */

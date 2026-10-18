@@ -17,10 +17,10 @@
 <link rel="preload" href="/fonts/google-sans-code-latin.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="/fonts/material-symbols-rounded-v2.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/fonts/fonts-v2.css" />
-<link rel="stylesheet" href="/auth.css?v=20261038" />
-<link rel="stylesheet" href="/pages.css?v=20261038" />
+<link rel="stylesheet" href="/auth.css?v=20261040" />
+<link rel="stylesheet" href="/pages.css?v=20261040" />
 <script>try{var s=JSON.parse(localStorage.getItem("kulshgpt.settings.v1")||"{}"),r=document.documentElement,t=s.theme||"dark";if(t==="system")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";r.dataset.theme=t;r.dataset.accent=s.accent||"violet";var lg=s.lang||((navigator.language||"ru").toLowerCase().indexOf("ru")===0?"ru":"en");r.lang=lg}catch(e){}</script>
-<link rel="stylesheet" href="/ui.css?v=20261038" />
+<link rel="stylesheet" href="/ui.css?v=20261040" />
 </head>
 <body>
 
@@ -92,7 +92,7 @@
         <a href="#auth" data-i18n="docs.nav.auth">Аутентификация</a>
         <a href="#chat" data-i18n="docs.nav.chat">POST /v1/chat</a>
         <a href="#models" data-i18n="docs.nav.models">Модели</a>
-        <a href="#api-prices" data-i18n="docs.nav.prices">Цены API</a>
+        <a href="#api-prices" data-i18n="docs.nav.prices">Цены KULSH API</a>
         <a href="#usage" data-i18n="docs.nav.usage">Лимиты и usage</a>
         <a href="#errors" data-i18n="docs.nav.errors">Ошибки</a>
       </nav>
@@ -140,7 +140,7 @@ Authorization: Bearer <span class="c-str">kulsh_sk_...</span></pre></div>
         <h3 data-i18n="docs.chat.res">Ответ (поток)</h3>
         <div class="code"><pre><span class="c-key">data:</span> {<span class="c-key">"delta"</span>:<span class="c-str">"Привет!"</span>}
 <span class="c-key">data:</span> {<span class="c-key">"delta"</span>:<span class="c-str">" Чем помочь?"</span>}
-<span class="c-key">data:</span> {<span class="c-key">"done"</span>:true,<span class="c-key">"usage"</span>:{<span class="c-key">"used"</span>:<span class="c-str">12430</span>,<span class="c-key">"limit"</span>:<span class="c-str">250000</span>,<span class="c-key">"unit"</span>:<span class="c-str">"tokens"</span>}}</pre></div>
+<span class="c-key">data:</span> {<span class="c-key">"done"</span>:true,<span class="c-key">"usage"</span>:{<span class="c-key">"used"</span>:<span class="c-str">12430</span>,<span class="c-key">"limit"</span>:<span class="c-str">500000</span>,<span class="c-key">"unit"</span>:<span class="c-str">"tokens"</span>}}</pre></div>
 
         <h2 id="models" data-i18n="docs.nav.models">Модели</h2>
         <div class="endpoint"><span class="method method-get">GET</span><span>/v1/models</span></div>
@@ -155,27 +155,27 @@ Authorization: Bearer <span class="c-str">kulsh_sk_...</span></pre></div>
   ]
 }</pre></div>
 
-        <h2 id="api-prices" data-i18n="docs.nav.prices">Цены API</h2>
-        <p data-i18n="docs.prices.p">Цены в чате и в API различаются. В чате бесплатные модели входят в дневной лимит, а в API запросы списываются с общего баланса. Бесплатны в API только DeepSeek V4.1 Flash и GLM 5.3 Flash; они расходуют дневной лимит. Цены — за 1 млн токенов, вход / выход, в USD.</p>
+        <h2 id="api-prices" data-i18n="docs.nav.prices">Цены KULSH API</h2>
+        <p data-i18n="docs.prices.p">Цены в чате и в KULSH API различаются. В чате бесплатные модели входят в дневной лимит, а в API запросы списываются с общего баланса. Бесплатны в API только DeepSeek V4.1 Flash и GLM 5.3 Flash; они расходуют дневной лимит. Цены — за 1 млн токенов, вход / выход, в USD.</p>
         <table class="api-prices">
           <thead><tr><th data-i18n="pricing.model">Модель</th><th data-i18n="pricing.input">Вход</th><th data-i18n="pricing.output">Выход</th></tr></thead>
           <tbody>
             <tr><td>Claude Opus 5.5</td><td>$0.60</td><td>$3.20</td></tr>
             <tr><td>Claude Sonnet 5.5</td><td>$0.40</td><td>$2.00</td></tr>
             <tr><td>Claude Fable 5.1</td><td>$1.20</td><td>$6.00</td></tr>
-            <tr><td>Claude Haiku 5.5</td><td>$0.12</td><td>$0.58</td></tr>
+            <tr><td>Claude Haiku 5.5</td><td>$0.08</td><td>$0.40</td></tr>
             <tr><td>DeepSeek V4 Pro</td><td>$0.29</td><td>$1.15</td></tr>
             <tr><td>DeepSeek V4.1 Flash</td><td class="free" colspan="2" data-i18n="pricing.freeApi">Бесплатно</td></tr>
-            <tr><td>Gemini 2.5 Flash</td><td>$0.45</td><td>$3.75</td></tr>
-            <tr><td>Gemini 2.5 Flash Lite</td><td>$0.15</td><td>$0.60</td></tr>
-            <tr><td>Gemini 3.5 Flash</td><td>$0.75</td><td>$4.50</td></tr>
-            <tr><td>Gemini 3.5 Flash Lite</td><td>$0.15</td><td>$0.60</td></tr>
-            <tr><td>Gemini 3.6 Flash</td><td>$0.75</td><td>$4.50</td></tr>
-            <tr><td>Gemini 3.7 Flash</td><td>$0.75</td><td>$4.50</td></tr>
-            <tr><td>Gemini 3.8 Flash</td><td>$0.75</td><td>$4.50</td></tr>
+            <tr><td>Gemini 2.5 Flash</td><td>$0.02</td><td>$0.18</td></tr>
+            <tr><td>Gemini 2.5 Flash Lite</td><td>$0.01</td><td>$0.05</td></tr>
+            <tr><td>Gemini 3.5 Flash</td><td>$0.04</td><td>$0.25</td></tr>
+            <tr><td>Gemini 3.5 Flash Lite</td><td>$0.01</td><td>$0.05</td></tr>
+            <tr><td>Gemini 3.6 Flash</td><td>$0.04</td><td>$0.25</td></tr>
+            <tr><td>Gemini 3.7 Flash</td><td>$0.04</td><td>$0.25</td></tr>
+            <tr><td>Gemini 3.8 Flash</td><td>$0.04</td><td>$0.25</td></tr>
             <tr><td>GLM 5.3 Flash</td><td class="free" colspan="2" data-i18n="pricing.freeApi">Бесплатно</td></tr>
             <tr><td>Kimi K3</td><td>$0.23</td><td>$1.30</td></tr>
-            <tr><td>GPT-6 Luna</td><td>$0.13</td><td>$0.61</td></tr>
+            <tr><td>GPT-6 Luna</td><td>$0.08</td><td>$0.40</td></tr>
             <tr><td>GPT-6.1 Sol</td><td>$0.18</td><td>$0.90</td></tr>
             <tr><td>GPT-6 Astra</td><td>$0.34</td><td>$1.70</td></tr>
             <tr><td>Grok 4.7</td><td>$0.20</td><td>$1.00</td></tr>
@@ -188,11 +188,11 @@ Authorization: Bearer <span class="c-str">kulsh_sk_...</span></pre></div>
         </div>
 
         <h2 id="usage" data-i18n="docs.nav.usage">Лимиты и usage</h2>
-        <p data-i18n="docs.usage.p">У каждого аккаунта один дневной лимит, измеряемый в токенах. Каждая модель тратит его по-разному: лёгкие — почти ничего, флагманы — заметно больше. Лимит — 250 000 токенов в сутки.</p>
+        <p data-i18n="docs.usage.p">У каждого аккаунта один дневной лимит, измеряемый в токенах. Каждая модель тратит его по-разному: лёгкие — почти ничего, флагманы — заметно больше. Лимит — 500 000 токенов в сутки.</p>
         <div class="endpoint"><span class="method method-get">GET</span><span>/v1/usage</span></div>
         <div class="code"><pre>{
   <span class="c-key">"used"</span>: <span class="c-str">12430</span>,
-  <span class="c-key">"limit"</span>: <span class="c-str">250000</span>,
+  <span class="c-key">"limit"</span>: <span class="c-str">500000</span>,
   <span class="c-key">"unit"</span>: <span class="c-str">"tokens"</span>,
   <span class="c-key">"resetsAt"</span>: <span class="c-str">"2026-10-11T00:00:00Z"</span>,
   <span class="c-key">"balance"</span>: <span class="c-str">0</span>
@@ -230,7 +230,7 @@ Authorization: Bearer <span class="c-str">kulsh_sk_...</span></pre></div>
   </div>
 </footer>
 
-<script src="/auth.js?v=20261038"></script>
-<script src="/pages.js?v=20261038"></script>
+<script src="/auth.js?v=20261040"></script>
+<script src="/pages.js?v=20261040"></script>
 </body>
 </html>

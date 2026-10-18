@@ -373,7 +373,7 @@ kulsh:g:{guestId}:usage:{day}     → то же для гостя
 Если база не подключена, `enabled: false` и лимит не применяется — сайт
 продолжает работать.
 
-Константы лимитов — в `api/_usage.js`: `GUEST_TOKEN_LIMIT = 37500`, `USER_TOKEN_LIMIT = 250000`.
+Константы лимитов — в `api/_usage.js`: `GUEST_TOKEN_LIMIT = 37500`, `USER_TOKEN_LIMIT = 500000`.
 
 ## Скиллы
 
@@ -447,7 +447,7 @@ curl -N https://kulsh.vercel.app/v1/chat \
 ```
 data: {"delta":"Привет"}
 data: {"delta":", чем помочь?"}
-data: {"done":true,"usage":{"used":12430,"limit":250000,"unit":"tokens","cost":52}}
+data: {"done":true,"usage":{"used":12430,"limit":500000,"unit":"tokens","cost":52}}
 ```
 
 Предполётные ошибки публичного API отдают честные HTTP-статусы (веб-чат на те же

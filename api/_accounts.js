@@ -152,7 +152,7 @@ export async function accountView(env, acct) {
     topups: 0,
     bonus: 0,
     used: 0,
-    limit: 250000,
+    limit: 500000,
     enabled: false,
   };
   if (!b) return base;

@@ -182,9 +182,74 @@
     } catch { return String(Math.round(v)); }
   }
 
+  // ---------- Баланс: рубли / USD по реальному курсу / токены ----------
+  // Средняя цена платной модели в чате: среднее по (вход + выход) / 2 для
+  // Opus, Sonnet, Fable, Grok, Astra и Qwen = 17.84 / 12 = 1.4867 $ за 1M.
+  const PAID_AVG_USD_PER_M = 1.4867;
+  const FX_KEY = 'kulsh.fx.usd.v1';
+  let fxRate = 90;
+  try { const fx = JSON.parse(store.get(FX_KEY) || 'null'); if (fx && Number(fx.rate) > 0) fxRate = Number(fx.rate); } catch {}
+  let fxLoading = null;
+  function ensureRate() {
+    if (fxLoading) return fxLoading;
+    let fresh = false;
+    try {
+      const fx = JSON.parse(store.get(FX_KEY) || 'null');
+      if (fx && Number(fx.rate) > 0) {
+        fxRate = Number(fx.rate);
+        fresh = Date.now() - Number(fx.ts || 0) < 6 * 3600 * 1000;
+      }
+    } catch {}
+    if (fresh) return Promise.resolve(fxRate);
+    fxLoading = fetch('/api/rate', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((j) => {
+        const rate = Number(j && j.rate);
+        if (rate > 0) {
+          fxRate = rate;
+          store.set(FX_KEY, JSON.stringify({ rate, ts: Date.now() }));
+        }
+        return fxRate;
+      })
+      .catch(() => fxRate)
+      .finally(() => { fxLoading = null; });
+    return fxLoading;
+  }
+  function balanceView() {
+    try { return JSON.parse(store.get('kulshgpt.settings.v1') || '{}').balanceView || 'rub'; } catch { return 'rub'; }
+  }
+  function fmtRub(kop) {
+    const rub = Math.max(0, Number(kop) || 0) / 100;
+    try { return new Intl.NumberFormat(lang() === 'en' ? 'en' : 'ru', { maximumFractionDigits: 2 }).format(rub) + ' ₽'; }
+    catch { return rub.toFixed(2) + ' ₽'; }
+  }
+  function fmtUsd(kop) {
+    const usd = Math.max(0, Number(kop) || 0) / 100 / (fxRate || 90);
+    try {
+      return '$' + new Intl.NumberFormat(lang() === 'en' ? 'en' : 'ru', {
+        minimumFractionDigits: 2, maximumFractionDigits: usd >= 1 ? 2 : 4,
+      }).format(usd);
+    } catch { return '$' + usd.toFixed(2); }
+  }
+  function fmtBalanceTokens(kop) {
+    const usd = Math.max(0, Number(kop) || 0) / 100 / (fxRate || 90);
+    const tokens = (usd / PAID_AVG_USD_PER_M) * 1e6;
+    return fmtTok(tokens) + ' ' + (lang() === 'en' ? 'tokens' : 'ток.');
+  }
+  function balanceLine(kop) {
+    const view = balanceView();
+    const primary = view === 'usd' ? fmtUsd(kop) : view === 'tokens' ? fmtBalanceTokens(kop) : fmtRub(kop);
+    const parts = [];
+    if (view !== 'rub') parts.push(fmtRub(kop));
+    if (view !== 'usd') parts.push(fmtUsd(kop));
+    if (view !== 'tokens') parts.push(fmtBalanceTokens(kop));
+    return { primary, secondary: parts.join(' · ') };
+  }
+
   function usageHTML() {
     const s = tr();
-    const u = usage || { used: 0, limit: A.user ? 250000 : 37500, guest: !A.user };
+    const u = usage || { used: 0, limit: A.user ? 500000 : 37500, guest: !A.user };
+    const balLine = balanceLine(u.balance || 0);
     const pct = Math.max(0, Math.min(100, u.limit ? (u.used / u.limit) * 100 : 0));
     const left = Math.max(0, u.limit - u.used);
     const tone = pct >= 85 ? 'is-danger' : pct >= 60 ? 'is-warn' : '';
@@ -209,7 +274,10 @@
       </div>
       <div class="acct-balance">
         <span class="material-symbols-rounded">account_balance_wallet</span>
-        <span>${s.balance}: ${fmtPts((u.balance || 0) / 100)} ₽</span>
+        <span class="acct-balance-val">
+          <span>${s.balance}: ${balLine.primary}</span>
+          <span class="acct-balance-alt">${balLine.secondary}</span>
+        </span>
         ${topup && topup.tag
           ? `<a class="acct-topup" href="${esc(topup.url)}" target="_blank" rel="noopener noreferrer">${esc(s.topup)}</a>`
           : `<button class="acct-topup" type="button" data-act="link">${esc(s.topupLinkTg)}</button>`}
@@ -311,6 +379,10 @@
     menuBackdrop.classList.add('is-open');
     menu.classList.add('is-open');
     positionMenu();
+    // Реальный курс USD/RUB нужен для альтернативного отображения баланса.
+    ensureRate().then(() => {
+      if (menu.classList.contains('is-open')) { renderMenu(); positionMenu(); }
+    });
     // Подтягиваем актуальный usage и привязки.
     fetch('/api/usage', { cache: 'no-store' })
       .then((r) => r.json())
