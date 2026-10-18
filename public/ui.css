@@ -36,9 +36,13 @@
 }
 
 /* ---- Скроллбары: тонкие, без стрелок-кнопок ---- */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--md-primary) 38%, transparent) transparent;
+/* scrollbar-width/color задаём только для Firefox: в Chromium они отключают
+   кастомные ::-webkit-scrollbar и возвращают нативные полосы со стрелками. */
+@supports (-moz-appearance: none) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--md-primary) 38%, transparent) transparent;
+  }
 }
 *::-webkit-scrollbar { width: 8px; height: 8px; }
 *::-webkit-scrollbar-button {
@@ -61,7 +65,7 @@
    ни вертикальные, ни горизонтальные, ни у вложенных контейнеров. */
 @media (max-width: 900px), (pointer: coarse) {
   html, body, * {
-    scrollbar-width: none;
+    scrollbar-width: none !important;
     -ms-overflow-style: none;
   }
   *::-webkit-scrollbar,
@@ -314,6 +318,7 @@ select {
 .attachment-tray { padding: 4px 6px 2px; }
 .effort-chips {
   display: inline-flex; align-items: center; gap: 2px;
+  height: 34px;
   padding: 2px; border-radius: 999px;
   border: 1px solid var(--md-outline-variant);
   background: color-mix(in srgb, var(--md-on-surface) 4%, transparent);
@@ -330,7 +335,7 @@ select {
 .effort-chip.is-active { background: var(--md-primary); color: var(--md-on-primary); }
 .search-chip {
   display: inline-flex; align-items: center; gap: 6px;
-  height: 32px; padding: 0 12px; border-radius: 999px;
+  height: 34px; padding: 0 12px; border-radius: 999px;
   border: 1px solid var(--md-outline-variant);
   color: var(--md-on-surface-variant);
   font-size: .76rem; font-weight: 500;
@@ -419,7 +424,8 @@ select {
   .msg { gap: 8px; }
   .msg-avatar { width: 32px; height: 32px; flex: 0 0 32px; }
   .msg-avatar .material-symbols-rounded { font-size: 18px; }
-  .composer-tools { justify-content: space-between; }
+  .composer-tools { justify-content: flex-start; flex-wrap: nowrap; }
+  .search-chip { flex: 0 0 auto; }
 }
 @media (max-width: 760px) {
   .mnav .account-btn { padding: 0; width: 40px; justify-content: center; }
@@ -452,9 +458,10 @@ select {
     min-width: 92px; margin-right: 0;
   }
   .composer-tools { padding: 8px 8px 0; gap: 6px; }
+  .effort-chips { flex: 0 0 auto; }
   .effort-chip { padding: 0 8px; }
   .effort-chip span:last-child { display: none; }
-  .search-chip { padding: 0 10px; }
+  .search-chip { height: 34px; padding: 0 10px; }
   .search-chip span:last-child { display: none; }
   .msg.user .msg-stack { max-width: min(90%, calc(100% - 44px)); }
 }

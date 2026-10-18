@@ -157,7 +157,10 @@ img { max-width: 100%; display: block; }
 .material-symbols-rounded { font-variation-settings: 'wght' 400, 'FILL' 0; line-height: 1; user-select: none; }
 
 /* ===== SCROLLBARS ===== */
-* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-primary) 40%, transparent) transparent; }
+/* Важно: в Chromium нельзя одновременно задавать scrollbar-width/scrollbar-color
+   и стилизовать ::-webkit-scrollbar — при указании стандартных свойств браузер
+   переключается на нативные полосы Windows со стрелками. Поэтому стандартные
+   свойства применяем только в Firefox, а Chromium рисует кастомную полосу. */
 *::-webkit-scrollbar { width: 8px; height: 8px; }
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
@@ -170,19 +173,32 @@ img { max-width: 100%; display: block; }
 *::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--md-primary) 65%, transparent); background-clip: padding-box; }
 *::-webkit-scrollbar-corner { background: transparent; }
 /* Убираем стрелки-кнопки на концах скроллбара (в списке моделей и т.п.) */
-*::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+*::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button:single-button,
+*::-webkit-scrollbar-button:double-button,
+*::-webkit-scrollbar-button:vertical:start,
+*::-webkit-scrollbar-button:vertical:end,
+*::-webkit-scrollbar-button:horizontal:start,
+*::-webkit-scrollbar-button:horizontal:end {
+  display: none !important; width: 0 !important; height: 0 !important;
+  -webkit-appearance: none; background: transparent;
+}
 
-/* Touch devices: no visible scrollbars at all, scrolling still works */
-@media (pointer: coarse) {
-  * { scrollbar-width: none; }
-  *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+/* Firefox: тонкие полосы без стрелок (webkit-псевдоэлементы там не работают). */
+@supports (-moz-appearance: none) {
+  * { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-primary) 40%, transparent) transparent; }
+}
+
+/* Touch devices and phones: no visible scrollbars at all, scrolling still works.
+   !important обязателен: иначе классовые правила ниже могут вернуть полосу. */
+@media (max-width: 900px), (pointer: coarse) {
+  html, body, * { scrollbar-width: none !important; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
 }
 /* Horizontal scrollers inside messages (code, tables): slim rounded bars */
-.pre-scroll, .msg-content table, .dialog-tabs { scrollbar-width: thin; }
 .pre-scroll::-webkit-scrollbar, .msg-content table::-webkit-scrollbar, .dialog-tabs::-webkit-scrollbar { height: 6px; }
-.dialog-tabs { scrollbar-width: none; }
 .dialog-tabs::-webkit-scrollbar { display: none; }
-select, textarea { scrollbar-width: thin; }
+@supports (-moz-appearance: none) { .dialog-tabs { scrollbar-width: none; } }
 
 /* ===== ANIMATED BACKGROUND ===== */
 .bg-layer {
@@ -1462,17 +1478,9 @@ h1, h2, h3, .empty-title, .dialog-header h2, .about-block h3 { font-variation-se
 }
 
 /* ===== СКРЫТЫЕ СТРЕЛКИ СКРОЛЛБАРА (в т.ч. в списке моделей) ===== */
-*::-webkit-scrollbar-button,
-*::-webkit-scrollbar-button:single-button,
-*::-webkit-scrollbar-button:double-button,
-*::-webkit-scrollbar-button:vertical:start,
-*::-webkit-scrollbar-button:vertical:end,
-*::-webkit-scrollbar-button:horizontal:start,
-*::-webkit-scrollbar-button:horizontal:end {
-  display: none !important; width: 0 !important; height: 0 !important;
-  -webkit-appearance: none; background: transparent;
-}
-.model-picker-menu { scrollbar-width: thin; }
+/* Стрелки уже отключены в общем блоке SCROLLBARS; здесь оставляем
+   только страховку для вложенных скроллеров. */
+.model-picker-menu::-webkit-scrollbar-button { display: none !important; width: 0 !important; height: 0 !important; }
 
 /* ===== КОПИРОВАНИЕ: всплывающая надпись «Скопировано» ===== */
 .msg-actions { position: relative; }
