@@ -183,9 +183,9 @@
   }
 
   // ---------- Баланс: рубли / USD по реальному курсу / токены ----------
-  // Средняя цена платной модели в чате: среднее по (вход + выход) / 2 для
-  // Opus, Sonnet, Fable, Grok, Astra и Qwen = 17.84 / 12 = 1.4867 $ за 1M.
-  const PAID_AVG_USD_PER_M = 1.4867;
+  // Эталон для пересчёта баланса в токены — GPT-6 Astra (платная модель чата):
+  // (0.34 вход + 1.70 выход) / 2 = 1.02 $ за 1M токенов.
+  const PAID_AVG_USD_PER_M = 1.02;
   const FX_KEY = 'kulsh.fx.usd.v1';
   let fxRate = 90;
   try { const fx = JSON.parse(store.get(FX_KEY) || 'null'); if (fx && Number(fx.rate) > 0) fxRate = Number(fx.rate); } catch {}
@@ -274,7 +274,7 @@
       </div>
       <div class="acct-balance">
         <span class="material-symbols-rounded">account_balance_wallet</span>
-        <span class="acct-balance-val">
+        <span class="acct-balance-val" title="${lang() === 'en' ? 'Tokens are converted at the GPT-6 Astra price: $1.02 per 1M' : 'Токены считаются по цене GPT-6 Astra: $1.02 за 1M'}">
           <span>${s.balance}: ${balLine.primary}</span>
           <span class="acct-balance-alt">${balLine.secondary}</span>
         </span>
