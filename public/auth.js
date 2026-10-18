@@ -183,9 +183,11 @@
   }
 
   // ---------- Баланс: рубли / USD по реальному курсу / токены ----------
-  // Эталон для пересчёта баланса в токены — GPT-6 Astra (платная модель чата):
-  // (0.34 вход + 1.70 выход) / 2 = 1.02 $ за 1M токенов.
-  const PAID_AVG_USD_PER_M = 1.02;
+  // Эталон для пересчёта баланса в токены — GPT-6 Astra (платная модель чата).
+  // В реальном чате вход доминирует (история, системный промпт, вложения),
+  // поэтому берём 75% входа и 25% выхода:
+  // 0.75 × $0.34 + 0.25 × $1.70 = $0.68 за 1M токенов.
+  const PAID_AVG_USD_PER_M = 0.68;
   const FX_KEY = 'kulsh.fx.usd.v1';
   let fxRate = 90;
   try { const fx = JSON.parse(store.get(FX_KEY) || 'null'); if (fx && Number(fx.rate) > 0) fxRate = Number(fx.rate); } catch {}
@@ -274,7 +276,7 @@
       </div>
       <div class="acct-balance">
         <span class="material-symbols-rounded">account_balance_wallet</span>
-        <span class="acct-balance-val" title="${lang() === 'en' ? 'Tokens are converted at the GPT-6 Astra price: $1.02 per 1M' : 'Токены считаются по цене GPT-6 Astra: $1.02 за 1M'}">
+        <span class="acct-balance-val" title="${lang() === 'en' ? 'Tokens are converted at the GPT-6 Astra price: $0.68 per 1M (75% input, 25% output)' : 'Токены считаются по цене GPT-6 Astra: $0.68 за 1M (75% вход, 25% выход)'}">
           <span>${s.balance}: ${balLine.primary}</span>
           <span class="acct-balance-alt">${balLine.secondary}</span>
         </span>
