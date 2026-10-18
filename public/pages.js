@@ -317,28 +317,93 @@
     host.innerHTML = head + rows;
   }
 
-  // ---------- Появление секций при прокрутке ----------
+  // ---------- Появление элементов при прокрутке ----------
   function initReveal() {
+    // Автоматически подписываем на анимацию все смысловые блоки страницы,
+    // а не только те, где .reveal проставлен вручную.
+    const auto = document.querySelectorAll([
+      '.hero-inner > *',
+      '.section > .wrap > *',
+      '.section-sm > .wrap > *',
+      '.docs-nav a',
+      '.docs-body > *',
+      '.footer-inner > *',
+      '.row',
+      '.callout',
+    ].join(','));
+    auto.forEach((el) => {
+      if (el.matches('.grid, .grid-2, .grid-3, .grid-4, .footer-spacer')) return;
+      if (getComputedStyle(el).display === 'none') return;
+      el.classList.add('reveal');
+    });
+
+    // Каскад внутри групп: каждая следующая карточка/строка появляется чуть позже.
+    document.querySelectorAll('.grid, .rows, .docs-body, .docs-nav, .hero-inner, .footer-inner').forEach((parent) => {
+      let i = 0;
+      Array.from(parent.children).forEach((el) => {
+        if (!el.classList.contains('reveal')) return;
+        el.style.setProperty('--rd', Math.min(i * 55, 330) + 'ms');
+        i++;
+      });
+    });
+
     const items = document.querySelectorAll('.reveal');
     if (!items.length) return;
     const show = (el) => el.classList.add('is-in');
     if ('IntersectionObserver' in window && !reduceMotion) {
       const io = new IntersectionObserver((entries) => {
-        entries.forEach((e) => { if (e.isIntersecting) { show(e.target); io.unobserve(e.target); } });
-      }, { rootMargin: '0px 0px -6% 0px', threshold: 0.06 });
+        entries.forEach((e) => {
+          if (e.isIntersecting) { show(e.target); io.unobserve(e.target); }
+        });
+      }, { rootMargin: '0px 0px -2% 0px', threshold: 0.04 });
       items.forEach((el) => io.observe(el));
-      // Страховка: если observer не сработал (фоновая вкладка, скриншот),
-      // через мгновение показываем всё — контент не останется скрытым.
-      setTimeout(() => items.forEach(show), 1200);
     } else {
       items.forEach(show);
     }
+  }
+
+  // ---------- Мобильное меню: плавное открытие и закрытие ----------
+  function initMobileMenu() {
+    document.querySelectorAll('.mnav-mobile').forEach((d) => {
+      const summary = d.querySelector('summary');
+      const panel = d.querySelector('.mm-panel');
+      if (!summary || !panel) return;
+      let timer = null;
+      const close = () => {
+        if (!d.open || panel.classList.contains('is-closing')) return;
+        panel.classList.add('is-closing');
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          d.open = false;
+          panel.classList.remove('is-closing');
+        }, 170);
+      };
+      summary.addEventListener('click', (e) => {
+        e.preventDefault();
+        clearTimeout(timer);
+        if (d.open && !panel.classList.contains('is-closing')) { close(); return; }
+        panel.classList.remove('is-closing');
+        d.open = true;
+        // Перезапускаем входную анимацию, даже если панель уже была в DOM.
+        panel.style.animation = 'none';
+        void panel.offsetWidth;
+        panel.style.animation = '';
+      });
+      document.addEventListener('click', (e) => {
+        if (d.open && !d.contains(e.target)) close();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && d.open) close();
+      });
+      panel.querySelectorAll('a').forEach((a) => a.addEventListener('click', close));
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     applyTheme();
     applyLang();
     initReveal();
+    initMobileMenu();
 
     document.querySelectorAll('.lang-switch').forEach((sw) => {
       sw.addEventListener('click', (e) => {

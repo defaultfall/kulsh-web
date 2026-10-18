@@ -296,9 +296,18 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   border-radius: var(--r-lg);
   box-shadow: 0 20px 50px var(--md-shadow);
   transform-origin: top right;
-  animation: mmIn var(--dur-m) var(--ease-emphasized);
+  animation: mmIn 260ms var(--ease-emphasized) both;
+  will-change: opacity, transform;
 }
-@keyframes mmIn { from { opacity: 0; transform: translateY(-8px) scale(.97); } to { opacity: 1; transform: none; } }
+.mm-panel.is-closing { animation: mmOut 170ms var(--ease-standard) both; }
+@keyframes mmIn {
+  from { opacity: 0; transform: translateY(-10px) scale(.96); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes mmOut {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(-8px) scale(.97); }
+}
 .mm-nav { display: flex; flex-direction: column; gap: 2px; }
 .mm-nav a {
   display: flex; align-items: center; height: 46px; padding: 0 16px;
@@ -406,7 +415,9 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .card-icon {
   width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; margin-bottom: var(--sp-3);
   background: var(--md-primary-container); color: var(--md-on-primary-container);
+  transition: transform var(--dur-m) var(--ease-spring), background var(--dur-m) var(--ease-standard);
 }
+.card:hover .card-icon { transform: translateY(-3px) rotate(-3deg) scale(1.05); }
 .card-icon .material-symbols-rounded { font-size: 25px; }
 .card h3 { font-family: var(--font-display); font-weight: 600; font-size: 18.5px; line-height: 1.25; margin-bottom: var(--sp-1); }
 .card p { color: var(--md-on-surface-variant); font-size: 15px; line-height: 1.5; }
@@ -486,30 +497,84 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .callout p { color: inherit; margin: 0; line-height: 1.5; }
 
 /* ===== FOOTER ===== */
-.footer { border-top: 1px solid var(--md-outline-variant); padding: var(--sp-6) 0; margin-top: var(--sp-6); }
-.footer-inner { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
-.footer-brand { display: flex; align-items: center; gap: 10px; font-weight: 600; }
-.footer-brand img { width: 26px; height: 26px; object-fit: contain; }
-.footer-links { display: flex; gap: var(--sp-3); flex-wrap: wrap; color: var(--md-on-surface-variant); font-size: 14px; }
+/* position/z-index обязательны: иначе фиксированная виньетка фона ложится
+   поверх текста и футер на ПК выглядит затемнённым. */
+.footer {
+  position: relative; z-index: 1;
+  margin-top: 8px;
+  padding: 28px 0 32px;
+  border-top: 1px solid var(--md-outline-variant);
+  background: linear-gradient(to bottom,
+    transparent,
+    color-mix(in srgb, var(--md-surface-container-low) 55%, transparent));
+}
+.footer-inner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.footer-brand {
+  display: flex; align-items: center; gap: 10px;
+  justify-self: start;
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+}
+.footer-brand img { width: 28px; height: 28px; object-fit: contain; }
+.footer-links {
+  display: flex; align-items: center; justify-content: center;
+  gap: 4px 20px; flex-wrap: wrap;
+  color: var(--md-on-surface-variant); font-size: 14px;
+}
+.footer-links a { position: relative; padding: 4px 0; color: inherit; }
+.footer-links a::after {
+  content: ''; position: absolute; left: 0; right: 100%; bottom: 0;
+  height: 1px; background: currentColor; opacity: .7;
+  transition: right var(--dur-m) var(--ease-emphasized);
+}
 .footer-links a:hover { color: var(--md-on-surface); }
-.footer-spacer { flex: 1; }
-.footer-note { color: var(--md-on-surface-variant); font-size: 13px; }
+.footer-links a:hover::after { right: 0; }
+.footer-spacer { display: none; }
+.footer-note {
+  justify-self: end;
+  text-align: right; color: var(--md-on-surface-variant);
+  font-size: 13px; font-variant-numeric: tabular-nums;
+}
+@media (max-width: 760px) {
+  .footer { padding: 24px 0 28px; }
+  .footer-inner { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 14px; }
+  .footer-links { gap: 2px 16px; }
+  .footer-note { text-align: center; }
+}
 
 /* ===== ENTRANCE ANIMATION (появление секций при прокрутке) =====
    Скрытое состояние включается только когда JS готов (html.js) — без JS всё
    видно сразу. Плюс в JS есть страховка: если IntersectionObserver не сработал
    (например, вкладка в фоне), всё раскрывается по таймеру. */
-html.js .reveal { opacity: 0; transform: translateY(16px); transition: opacity var(--dur-l) var(--ease-out), transform var(--dur-l) var(--ease-out); }
+html.js .reveal {
+  opacity: 0;
+  transform: translateY(22px) scale(.985);
+  transition:
+    opacity 560ms var(--ease-out),
+    transform 620ms var(--ease-emphasized);
+  transition-delay: var(--rd, 0ms);
+  will-change: opacity, transform;
+}
 html.js .reveal.is-in { opacity: 1; transform: none; }
-html.js .grid .reveal:nth-child(2) { transition-delay: 50ms; }
-html.js .grid .reveal:nth-child(3) { transition-delay: 100ms; }
-html.js .grid .reveal:nth-child(4) { transition-delay: 150ms; }
-html.js .grid .reveal:nth-child(5) { transition-delay: 200ms; }
-html.js .grid .reveal:nth-child(6) { transition-delay: 250ms; }
+html.js .reveal.is-in { will-change: auto; }
+/* Каскад для карточек и строк: задержку задаёт JS через --rd. */
+html.js .grid .reveal:nth-child(2) { --rd: 45ms; }
+html.js .grid .reveal:nth-child(3) { --rd: 90ms; }
+html.js .grid .reveal:nth-child(4) { --rd: 135ms; }
+html.js .grid .reveal:nth-child(5) { --rd: 180ms; }
+html.js .grid .reveal:nth-child(6) { --rd: 225ms; }
+html.js .grid .reveal:nth-child(7) { --rd: 270ms; }
+html.js .grid .reveal:nth-child(8) { --rd: 315ms; }
+html.js .grid .reveal:nth-child(9) { --rd: 360ms; }
 @media (prefers-reduced-motion: reduce) {
   html.js .reveal { opacity: 1; transform: none; transition: none; }
   .hero-logo { animation: none; }
   .card::after, .panel::after { transition: none; }
+  .mm-panel, .mm-panel.is-closing { animation: none; }
 }
 
 /* ===== SCROLLBARS ===== */
