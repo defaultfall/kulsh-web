@@ -176,8 +176,8 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 
 /* ===== LAYOUT ===== */
 .wrap { width: 100%; max-width: var(--page-max); margin: 0 auto; padding: 0 var(--sp-4); }
-.section { padding: var(--sp-7) 0; position: relative; }
-.section-sm { padding: var(--sp-6) 0; }
+.section { padding: 36px 0; position: relative; }
+.section-sm { padding: 36px 0; }
 
 /* Плашка-ярлык раздела (моно-шрифт в аккуратной капсуле, как «Доступ ограничен») */
 .eyebrow {
@@ -195,7 +195,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   background: currentColor; box-shadow: 0 0 8px currentColor;
 }
 
-.section-head { max-width: 680px; margin-bottom: var(--sp-6); }
+.section-head { max-width: 680px; margin-bottom: 28px; }
 .section-head h2 {
   font-family: var(--font-display); font-weight: 700;
   font-size: clamp(26px, 3.4vw, 38px); line-height: 1.14; letter-spacing: -.02em;
@@ -530,8 +530,8 @@ html.js .grid .reveal:nth-child(6) { transition-delay: 250ms; }
 
   .wrap { padding: 0 var(--sp-3); }
   body { font-size: 16px; line-height: 1.55; }
-  .section { padding: var(--sp-6) 0; }
-  .section-head { margin-bottom: var(--sp-5); }
+  .section { padding: 30px 0; }
+  .section-head { margin-bottom: 24px; }
   .section-head p { font-size: 16px; }
   .grid { gap: var(--sp-3); }
   .grid-3, .grid-4, .grid-2 { grid-template-columns: 1fr; }
