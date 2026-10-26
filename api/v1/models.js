@@ -31,7 +31,11 @@ export default async function handler(req) {
     return {
       id, dev: m.dev, vision: m.vision, mult: m.mult, name: modelLabel(id),
       free,
-      pricing: { input: p.in, output: p.out, currency: 'USD', per: '1M tokens' },
+      pricing: {
+        input: p.in, output: p.out,
+        cacheRead: p.cacheIn ?? 0, cacheWrite: p.cacheOut ?? 0,
+        currency: 'USD', per: '1M tokens',
+      },
     };
   });
   const created = 1735689600; // 2025-01-01, стабильная метка для клиентов

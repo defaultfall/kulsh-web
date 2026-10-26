@@ -8,7 +8,7 @@
 // chat.js сам нормализует поток и шлёт клиенту события { delta } / { done } / { error }.
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-const NEUTRALBEATS_BASE = 'https://api.neutralbeats.com/v1';
+const ETAGEONE_BASE = 'https://api.etage.one/v1';
 
 const SAFETY = ['HARM_CATEGORY_HARASSMENT', 'HARM_CATEGORY_HATE_SPEECH',
   'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'HARM_CATEGORY_DANGEROUS_CONTENT']
@@ -92,7 +92,7 @@ const google = {
   },
 };
 
-// ---- NeutralBeats (OpenAI-совместимый API) ----
+// ---- EtageOne (OpenAI-совместимый API) ----
 function openaiMessage(m) {
   const images = m.media.filter((a) => isImage(a.mimeType));
   const texts = m.media.filter((a) => !isImage(a.mimeType) && isText(a.mimeType));
@@ -110,7 +110,7 @@ function openaiMessage(m) {
 }
 
 const openaiCompat = {
-  id: 'neutralbeats',
+  id: 'etageone',
   envKeys: ['NEUTRALBEATS_API_KEY'],
   keys(env) {
     const out = [];
@@ -118,7 +118,7 @@ const openaiCompat = {
     return out;
   },
   async open({ model, key, messages, systemText, temperature, signal, env }) {
-    const base = (env.NEUTRALBEATS_BASE_URL || NEUTRALBEATS_BASE).replace(/\/+$/, '');
+    const base = (env.NEUTRALBEATS_BASE_URL || ETAGEONE_BASE).replace(/\/+$/, '');
     const msgs = systemText && systemText.trim()
       ? [{ role: 'system', content: systemText }, ...messages.map(openaiMessage)]
       : messages.map(openaiMessage);
@@ -162,7 +162,7 @@ const openaiCompat = {
   },
 };
 
-export const PROVIDERS = { google, neutralbeats: openaiCompat };
+export const PROVIDERS = { google, etageone: openaiCompat };
 
 // Приводим входные сообщения клиента к общему виду { role, text, media[] }.
 export function canonicalMessages(messages) {

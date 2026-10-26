@@ -8,7 +8,7 @@ Markdown (таблицы, код, списки и т.д.), общий суточ
 
 Модели двух провайдеров:
 - **Google Gemini** — нативный API, ротация ключей `APIKEY1..APIKEY5` при 429/5xx.
-- **NeutralBeats** — [OI]-совместимый API, один ключ `NEUTRALBEATS_API_KEY`.
+- **EtageOne** — [OI]-совместимый API, один ключ `NEUTRALBEATS_API_KEY` (имя переменной оставлено прежним для совместимости).
 
 ## Структура проекта
 
@@ -23,7 +23,7 @@ kulsh-web/
 │   │   └── usage.js     ← GET  /v1/usage
 │   ├── keys.js          ← управление API-ключами аккаунта
 │   ├── _apikeys.js      ← хранение/проверка API-ключей (хеш в Redis)
-│   ├── _providers.js    ← адаптеры провайдеров (google / neutralbeats)
+│   ├── _providers.js    ← адаптеры провайдеров (google / etageone)
 │   ├── _models.js       ← реестр моделей: provider, vision, mult
 │   ├── _usage.js        ← суточный лимит (токены), гость/пользователь, баланс
 │   ├── _store.js        ← тонкая прослойка над Upstash Redis (REST)
@@ -86,11 +86,11 @@ kulsh-web/
 | `APIKEY3`               | API-ключ Gemini участника команды №3                  |
 | `APIKEY4`               | API-ключ Gemini участника команды №4                  |
 | `APIKEY5`               | API-ключ Gemini участника команды №5                  |
-| `NEUTRALBEATS_API_KEY`  | API-ключ NeutralBeats (модели DeepSeek / GLM / Kimi)  |
+| `NEUTRALBEATS_API_KEY`  | API-ключ EtageOne (модели DeepSeek / GLM / Kimi / GPT) — имя переменной прежнее |
 
 Ключи Gemini получаются в [Google AI Studio](https://aistudio.google.com/apikey) —
 каждый участник команды создаёт свой ключ на своём личном аккаунте Google.
-Ключ NeutralBeats выдаётся в личном кабинете NeutralBeats.
+Ключ EtageOne выдаётся в личном кабинете EtageOne.
 
 Можно указать от 1 до 5 ключей Gemini — сервер сам подхватит только заполненные.
 При ошибке 429 (превышен лимит) или 5xx на одном ключе сервер автоматически
@@ -101,7 +101,7 @@ kulsh-web/
 
 | Имя                       | Значение |
 |---------------------------|----------|
-| `NEUTRALBEATS_BASE_URL`   | Другой base URL NeutralBeats, если нужен (по умолчанию `https://api.neutralbeats.com/v1`) |
+| `NEUTRALBEATS_BASE_URL`   | Другой base URL EtageOne, если нужен (по умолчанию `https://api.etage.one/v1`) |
 | `SITE_URL`                | Основной адрес сайта (для OAuth за прокси / на превью-деплоях) |
 
 Переменные для входа (`AUTH_SECRET`, `TELEGRAM_BOT_TOKEN`, `GITHUB_*`, `GOOGLE_*`)
@@ -265,10 +265,12 @@ JSON), `content` строкой или массивом частей (`text` + `
 | `gemini-3.6-flash`     | google       |   ✓    | 3     | Gemini 3.6 Flash |
 | `gemini-3.7-flash`     | google       |   ✓    | 3     | Gemini 3.7 Flash |
 | `gemini-3.8-flash`     | google       |   ✓    | 3     | Gemini 3.8 Flash |
-| `deepseek-v4.1-flash`  | neutralbeats |   ✓    | 1     | DeepSeek V4.1 Flash |
-| `deepseek-v4-pro`      | neutralbeats |   ✗    | 2     | DeepSeek V4 Pro |
-| `glm-5.3-flash`        | neutralbeats |   ✓    | 1     | GLM 5.3 Flash |
-| `kimi-k3`              | neutralbeats |   ✓    | 3     | Kimi K3 |
+| `deepseek-v4.1-flash`  | etageone     |   ✓    | 1     | DeepSeek V4.1 Flash |
+| `deepseek-v4-pro`      | etageone     |   ✗    | 2     | DeepSeek V4 Pro |
+| `glm-5.3-flash`        | etageone     |   ✓    | 1     | GLM 5.3 Flash |
+| `kimi-k3`              | etageone     |   ✓    | 3     | Kimi K3 |
+| `kimi-k3.1-pro`        | etageone     |   ✓    | 3     | Kimi K3.1 Pro |
+| `gpt-6.1-terra`        | etageone     |   ✓    | 3     | GPT-6.1 Terra |
 
 - `provider` — какой адаптер использовать (`api/_providers.js`).
 - `vision` — принимает ли модель изображения. У моделей с `vision: false`
@@ -299,7 +301,7 @@ JSON), `content` строкой или массивом частей (`text` + `
 Лимит вывода модели — 16 384 токена (`maxOutputTokens` / `max_tokens`).
 
 **Google Gemini** — нативный `streamGenerateContent`, ключи `APIKEY1..APIKEY5`.
-**NeutralBeats** — [OI]-совместимый `/chat/completions`, ключ `NEUTRALBEATS_API_KEY`,
+**EtageOne** — [OI]-совместимый `/chat/completions`, ключ `NEUTRALBEATS_API_KEY`,
 текстовые вложения инлайнятся в промпт, изображения — как `image_url` (data URL).
 
 ### Если модель не отвечает
@@ -418,7 +420,8 @@ DELETE /api/skills?id=...     → { ok: true }
 Базовый адрес: `https://kulsh.vercel.app/v1`. В API свои цены: запросы к платным
 моделям списываются с общего баланса, бесплатные API-модели (DeepSeek V4.1 Flash
 и GLM 5.3 Flash) не тарифицируются, остальные бесплатные в чате модели стоят
-дёшево. Цены — в `API_PRICING` (`api/_models.js`) и в `GET /v1/models`.
+дёшево. Цены — в `API_PRICING` (`api/_models.js`) и в `GET /v1/models`;
+для Kimi K3.1 Pro и GPT-6.1 Terra там же указаны цены чтения и записи кеша.
 
 API ведёт себя как обычный провайдер: Kulsh не добавляет свои системные
 инструкции, дату, имя пользователя или поиск. Всё поведение задаёт клиент через
@@ -510,8 +513,8 @@ python -m http.server 4173 --directory public
 - Вход через Google / GitHub / Telegram, режим гостя с ограничениями (проверяются на сервере), окно входа и карточка аккаунта в сайдбаре.
 
 ## v4: провайдеры, лимиты, скиллы, страницы
-- Второй провайдер NeutralBeats ([OI]-совместимый API) рядом с нативным Gemini; выбор провайдера на модель.
-- Новые модели: DeepSeek V4.1 Flash, DeepSeek V4 Pro (без зрения), GLM 5.3 Flash, Kimi K3.
+- Второй провайдер EtageOne ([OI]-совместимый API) рядом с нативным Gemini; выбор провайдера на модель.
+- Новые модели: DeepSeek V4.1 Flash, DeepSeek V4 Pro (без зрения), GLM 5.3 Flash, Kimi K3, Kimi K3.1 Pro, GPT-6.1 Terra.
 - Общая суточная шкала очков (`api/_usage.js`): гость 10 сообщений/сутки, пользователь 300 очков/сутки; задел под баланс. Списание только после успешного ответа.
 - Скиллы: встроенный каталог (`public/skills/`) + личные скиллы пользователя в Redis (`api/skills.js`).
 - Новые страницы: лендинг `/`, «О Kulsh» `/about`, документация API `/docs`; чат переехал на `/chat`.

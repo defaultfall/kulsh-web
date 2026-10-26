@@ -22,7 +22,26 @@
 <script>try{var s=JSON.parse(localStorage.getItem("kulshgpt.settings.v1")||"{}"),r=document.documentElement,t=s.theme||"dark";if(t==="system")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";r.dataset.theme=t;r.dataset.accent=s.accent||"violet";var lg=s.lang||((navigator.language||"ru").toLowerCase().indexOf("ru")===0?"ru":"en");r.lang=lg}catch(e){}</script>
 <link rel="stylesheet" href="/ui.css?v=20261045" />
 </head>
-<body>
+<body class="page-booting">
+
+<div class="page-skeleton" aria-hidden="true">
+  <div class="pg-skel-nav">
+    <div class="pg-sk pg-skel-brand"></div>
+    <div class="pg-skel-navlinks"><div class="pg-sk pg-skel-navlink"></div><div class="pg-sk pg-skel-navlink"></div><div class="pg-sk pg-skel-navlink"></div></div>
+    <div class="pg-skel-navspacer"></div>
+    <div class="pg-sk pg-skel-pill"></div><div class="pg-sk pg-skel-pill"></div>
+  </div>
+  <div class="pg-skel-body">
+    <div class="pg-sk pg-skel-title"></div>
+    <div class="pg-sk pg-skel-sub"></div>
+    <div class="pg-sk pg-skel-sub short"></div>
+    <div class="pg-skel-actions"><div class="pg-sk pg-skel-action"></div><div class="pg-sk pg-skel-action"></div></div>
+    <div class="pg-skel-grid">
+      <div class="pg-sk pg-skel-card"></div><div class="pg-sk pg-skel-card"></div><div class="pg-sk pg-skel-card"></div>
+      <div class="pg-sk pg-skel-card tall"></div><div class="pg-sk pg-skel-card tall"></div><div class="pg-sk pg-skel-card tall"></div>
+    </div>
+  </div>
+</div>
 
 <div class="bg-layer" aria-hidden="true">
   <div class="bg-shimmer"><div class="bg-base"></div><div class="bg-shine"></div></div>

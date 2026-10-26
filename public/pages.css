@@ -652,3 +652,62 @@ html.js .grid .reveal:nth-child(9) { --rd: 360ms; }
   .hero-badges { gap: 6px; margin-top: var(--sp-4); }
   .chip { height: 32px; padding: 0 12px; font-size: 13px; }
 }
+
+/* ==========================================================================
+   BOOT SKELETON Ч переливающиес€ плейсхолдеры на врем€ загрузки страниц.
+   ========================================================================== */
+body.page-booting { overflow: hidden; }
+body.page-booting > :not(.page-skeleton):not(.bg-layer) { visibility: hidden; }
+.page-skeleton {
+  position: fixed; inset: 0; z-index: 190;
+  display: flex; flex-direction: column;
+  background: var(--md-surface);
+}
+body:not(.page-booting) .page-skeleton { display: none; }
+.pg-sk {
+  position: relative; overflow: hidden; isolation: isolate;
+  background: color-mix(in srgb, var(--md-on-surface) 7%, var(--md-surface-container));
+  border-radius: 12px;
+}
+.pg-sk::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(100deg, transparent 20%,
+    color-mix(in srgb, var(--md-on-surface) 5%, transparent) 40%,
+    color-mix(in srgb, var(--md-on-surface) 14%, transparent) 50%,
+    color-mix(in srgb, var(--md-on-surface) 5%, transparent) 60%, transparent 80%);
+  animation: pg-sk-shimmer 1.5s linear infinite;
+}
+@keyframes pg-sk-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.pg-skel-nav {
+  height: 62px; display: flex; align-items: center; gap: 14px;
+  padding: 0 clamp(16px, 4vw, 48px); border-bottom: 1px solid var(--md-outline-variant);
+}
+.pg-skel-brand { width: 110px; height: 26px; }
+.pg-skel-navlinks { display: flex; gap: 10px; margin-left: 22px; }
+.pg-skel-navlink { width: 62px; height: 14px; border-radius: 999px; }
+.pg-skel-navspacer { flex: 1; }
+.pg-skel-pill { width: 92px; height: 32px; border-radius: 999px; margin-left: 10px; }
+.pg-skel-body {
+  width: 100%; max-width: 1120px; margin: 0 auto; padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 48px);
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.pg-skel-title { width: min(520px, 82%); height: 42px; border-radius: 999px; }
+.pg-skel-sub { width: min(640px, 92%); height: 16px; border-radius: 999px; }
+.pg-skel-sub.short { width: min(460px, 68%); }
+.pg-skel-actions { display: flex; gap: 12px; margin-top: 10px; }
+.pg-skel-action { width: 168px; height: 46px; border-radius: 999px; }
+.pg-skel-grid {
+  width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px; margin-top: 38px;
+}
+.pg-skel-card { height: 150px; border-radius: 18px; }
+.pg-skel-card.tall { height: 220px; }
+@media (max-width: 760px) {
+  .pg-skel-navlinks, .pg-skel-navspacer { display: none; }
+  .pg-skel-brand { margin-right: auto; }
+  .pg-skel-grid { grid-template-columns: 1fr; }
+  .pg-skel-card { height: 116px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pg-sk::after { animation: none; }
+}

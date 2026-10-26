@@ -13,10 +13,10 @@ export const FALLBACK_MODEL = 'gemini-2.5-flash';
 
 export const MODELS = {
   // ---- Anthropic ----
-  'claude-opus-5-5': { provider: 'neutralbeats', dev: 'anthropic', vision: true, mult: 3, label: 'Claude Opus 5.5', paid: true },
-  'claude-sonnet-5-5': { provider: 'neutralbeats', dev: 'anthropic', vision: true, mult: 3, label: 'Claude Sonnet 5.5', paid: true },
-  'claude-fable-5-1': { provider: 'neutralbeats', dev: 'anthropic', vision: true, mult: 3, label: 'Claude Fable 5.1', paid: true },
-  'claude-haiku-5-5': { provider: 'neutralbeats', dev: 'anthropic', vision: true, mult: 1, label: 'Claude Haiku 5.5' },
+  'claude-opus-5-5': { provider: 'etageone', dev: 'anthropic', vision: true, mult: 3, label: 'Claude Opus 5.5', paid: true },
+  'claude-sonnet-5-5': { provider: 'etageone', dev: 'anthropic', vision: true, mult: 3, label: 'Claude Sonnet 5.5', paid: true },
+  'claude-fable-5-1': { provider: 'etageone', dev: 'anthropic', vision: true, mult: 3, label: 'Claude Fable 5.1', paid: true },
+  'claude-haiku-5-5': { provider: 'etageone', dev: 'anthropic', vision: true, mult: 1, label: 'Claude Haiku 5.5' },
   // ---- Google DeepMind (нативный API, ротация APIKEY1..APIKEY5) ----
   'gemini-2.5-flash':      { provider: 'google', dev: 'google', vision: true,  mult: 1,   label: 'Gemini 2.5 Flash' },
   'gemini-2.5-flash-lite': { provider: 'google', dev: 'google', vision: true,  mult: 1,   label: 'Gemini 2.5 Flash Lite' },
@@ -28,24 +28,27 @@ export const MODELS = {
 
   // ---- DeepSeek ----
   // V4.1 Flash — повседневная модель: расход лимита в 10 раз ниже обычного.
-  'deepseek-v4.1-flash':   { provider: 'neutralbeats', dev: 'deepseek', vision: true,  mult: 0.1, label: 'DeepSeek V4.1 Flash' },
-  'deepseek-v4-pro':       { provider: 'neutralbeats', dev: 'deepseek', vision: false, mult: 2, label: 'DeepSeek V4 Pro' },
+  'deepseek-v4.1-flash':   { provider: 'etageone', dev: 'deepseek', vision: true,  mult: 0.1, label: 'DeepSeek V4.1 Flash' },
+  'deepseek-v4-pro':       { provider: 'etageone', dev: 'deepseek', vision: false, mult: 2, label: 'DeepSeek V4 Pro' },
   // ---- Z.AI ----
-  'glm-5.3-flash':         { provider: 'neutralbeats', dev: 'zai', vision: true,  mult: 0.1, label: 'GLM 5.3 Flash' },
+  'glm-5.3-flash':         { provider: 'etageone', dev: 'zai', vision: true,  mult: 0.1, label: 'GLM 5.3 Flash' },
   // ---- Moonshot AI ----
-  'kimi-k3':               { provider: 'neutralbeats', dev: 'moonshot', vision: true,  mult: 3, label: 'Kimi K3' },
+  'kimi-k3':               { provider: 'etageone', dev: 'moonshot', vision: true,  mult: 3, label: 'Kimi K3' },
+  'kimi-k3.1-pro':         { provider: 'etageone', dev: 'moonshot', vision: true,  mult: 3, label: 'Kimi K3.1 Pro', paid: true },
   // ---- [OI] ----
-  'gpt-6-luna':            { provider: 'neutralbeats', dev: 'openai', vision: true,  mult: 2, label: 'GPT-6 Luna' },
-  'gpt-6.1-sol':           { provider: 'neutralbeats', dev: 'openai', vision: true,  mult: 3, label: 'GPT-6.1 Sol' },
-  'gpt-6-astra':           { provider: 'neutralbeats', dev: 'openai', vision: true,  mult: 3, label: 'GPT-6 Astra', paid: true },
+  'gpt-6-luna':            { provider: 'etageone', dev: 'openai', vision: true,  mult: 2, label: 'GPT-6 Luna' },
+  'gpt-6.1-sol':           { provider: 'etageone', dev: 'openai', vision: true,  mult: 3, label: 'GPT-6.1 Sol' },
+  'gpt-6.1-terra':         { provider: 'etageone', dev: 'openai', vision: true,  mult: 3, label: 'GPT-6.1 Terra' },
+  'gpt-6-astra':           { provider: 'etageone', dev: 'openai', vision: true,  mult: 3, label: 'GPT-6 Astra', paid: true },
   // ---- xAI ----
-  'grok-4.7':              { provider: 'neutralbeats', dev: 'xai', vision: true,  mult: 3, label: 'Grok 4.7', paid: true },
+  'grok-4.7':              { provider: 'etageone', dev: 'xai', vision: true,  mult: 3, label: 'Grok 4.7', paid: true },
   // ---- Alibaba ----
-  'qwen3.8-max-0902':      { provider: 'neutralbeats', dev: 'alibaba', vision: true,  mult: 3, label: 'Qwen3.8 Max', paid: true },
+  'qwen3.8-max-0902':      { provider: 'etageone', dev: 'alibaba', vision: true,  mult: 3, label: 'Qwen3.8 Max', paid: true },
 };
 
 // Цены чата за 1 млн токенов в USD — те же, что в боте (src/util.py MODEL_PRICING).
 export const PRICING = {
+  'kimi-k3.1-pro':    { in: 0.16, out: 0.80, cacheIn: 0.014, cacheOut: 0 },
   'claude-opus-5-5': { in: 0.60, out: 3.20 },
   'claude-sonnet-5-5': { in: 0.40, out: 2.00 },
   'claude-fable-5-1': { in: 1.20, out: 6.00 },
@@ -75,9 +78,11 @@ export const API_PRICING = {
   'deepseek-v4-pro':        { in: 0.29, out: 1.15 },
   // Moonshot AI
   'kimi-k3':                { in: 0.23, out: 1.30 },
+  'kimi-k3.1-pro':          { in: 0.16, out: 0.80, cacheIn: 0.014, cacheOut: 0 },
   // [OI]
   'gpt-6-luna':             { in: 0.08, out: 0.40 },
   'gpt-6.1-sol':            { in: 0.18, out: 0.90 },
+  'gpt-6.1-terra':          { in: 0.06, out: 0.50, cacheIn: 0.006, cacheOut: 0 },
   // Бесплатные в API
   'deepseek-v4.1-flash':    { in: 0, out: 0 },
   'glm-5.3-flash':          { in: 0, out: 0 },

@@ -7,13 +7,13 @@
   // ============================================================
   const MODELS = [
     // ---- Anthropic ----
-    { id: 'claude-opus-5-5', name: 'Claude Opus 5.5', dev: 'anthropic', provider: 'neutralbeats', vision: true, mult: 3, logo: 'claude', tone: 'rose', paid: true, desc: { ru: 'Платная · $0.60 / $3.20 за 1M', en: 'Paid · $0.60 / $3.20 per 1M' } },
-    { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5', dev: 'anthropic', provider: 'neutralbeats', vision: true, mult: 3, logo: 'claude', tone: 'mint', paid: true, desc: { ru: 'Платная · $0.40 / $2.00 за 1M', en: 'Paid · $0.40 / $2.00 per 1M' } },
-    { id: 'claude-fable-5-1', name: 'Claude Fable 5.1', dev: 'anthropic', provider: 'neutralbeats', vision: true, mult: 3, logo: 'claude', tone: 'amber', paid: true, desc: { ru: 'Платная · $1.20 / $6.00 за 1M', en: 'Paid · $1.20 / $6.00 per 1M' } },
-    { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5', dev: 'anthropic', provider: 'neutralbeats', vision: true, mult: 1, logo: 'claude', tone: 'sky', desc: { ru: 'Бесплатная, входит в дневной лимит', en: 'Free, included in the daily limit' } },
+    { id: 'claude-opus-5-5', name: 'Claude Opus 5.5', dev: 'anthropic', provider: 'etageone', vision: true, mult: 3, logo: 'claude', tone: 'rose', paid: true, desc: { ru: 'Платная · $0.60 / $3.20 за 1M', en: 'Paid · $0.60 / $3.20 per 1M' } },
+    { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5', dev: 'anthropic', provider: 'etageone', vision: true, mult: 3, logo: 'claude', tone: 'mint', paid: true, desc: { ru: 'Платная · $0.40 / $2.00 за 1M', en: 'Paid · $0.40 / $2.00 per 1M' } },
+    { id: 'claude-fable-5-1', name: 'Claude Fable 5.1', dev: 'anthropic', provider: 'etageone', vision: true, mult: 3, logo: 'claude', tone: 'amber', paid: true, desc: { ru: 'Платная · $1.20 / $6.00 за 1M', en: 'Paid · $1.20 / $6.00 per 1M' } },
+    { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5', dev: 'anthropic', provider: 'etageone', vision: true, mult: 1, logo: 'claude', tone: 'sky', desc: { ru: 'Бесплатная, входит в дневной лимит', en: 'Free, included in the daily limit' } },
     // ---- DeepSeek ----
-    { id: 'deepseek-v4-pro',       name: 'DeepSeek V4 Pro',       dev: 'deepseek', provider: 'neutralbeats', vision: false, mult: 2, logo: 'deepseek', tone: 'sky',   desc: { ru: 'Усиленное рассуждение, без зрения', en: 'Strong reasoning, no vision' } },
-    { id: 'deepseek-v4.1-flash',   name: 'DeepSeek V4.1 Flash',   dev: 'deepseek', provider: 'neutralbeats', vision: true,  mult: 0.1, logo: 'deepseek', tone: 'mint',  desc: { ru: 'Выгодная и умная, расход лимита ×0.1', en: 'Great value, limit usage ×0.1' } },
+    { id: 'deepseek-v4-pro',       name: 'DeepSeek V4 Pro',       dev: 'deepseek', provider: 'etageone', vision: false, mult: 2, logo: 'deepseek', tone: 'sky',   desc: { ru: 'Усиленное рассуждение, без зрения', en: 'Strong reasoning, no vision' } },
+    { id: 'deepseek-v4.1-flash',   name: 'DeepSeek V4.1 Flash',   dev: 'deepseek', provider: 'etageone', vision: true,  mult: 0.1, logo: 'deepseek', tone: 'mint',  desc: { ru: 'Выгодная и умная, расход лимита ×0.1', en: 'Great value, limit usage ×0.1' } },
     // ---- Google DeepMind ----
     { id: 'gemini-3.8-flash',      name: 'Gemini 3.8 Flash',      dev: 'google', provider: 'google', vision: true,  mult: 3,   logo: 'gemini', tone: 'rose',  desc: { ru: 'Самая новая модель линейки', en: 'The newest in the lineup' } },
     { id: 'gemini-3.7-flash',      name: 'Gemini 3.7 Flash',      dev: 'google', provider: 'google', vision: true,  mult: 3,   logo: 'gemini', tone: 'rose',  desc: { ru: 'Новее и точнее', en: 'Newer and more accurate' } },
@@ -23,17 +23,19 @@
     { id: 'gemini-2.5-flash',      name: 'Gemini 2.5 Flash',      dev: 'google', provider: 'google', vision: true,  mult: 1,   logo: 'gemini', tone: 'amber', desc: { ru: 'Стабильная, быстрая модель', en: 'Stable, fast model' } },
     { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', dev: 'google', provider: 'google', vision: true,  mult: 1,   logo: 'gemini', tone: 'sky',   desc: { ru: 'Самая быстрая и лёгкая', en: 'Fastest and lightest' } },
     // ---- Moonshot AI ----
-    { id: 'kimi-k3',               name: 'Kimi K3',               dev: 'moonshot', provider: 'neutralbeats', vision: true,  mult: 3, logo: 'kimi', tone: 'amber', desc: { ru: 'Сильна в длинных текстах', en: 'Strong with long text' } },
+    { id: 'kimi-k3',               name: 'Kimi K3',               dev: 'moonshot', provider: 'etageone', vision: true,  mult: 3, logo: 'kimi', tone: 'amber', desc: { ru: 'Сильна в длинных текстах', en: 'Strong with long text' } },
+    { id: 'kimi-k3.1-pro',         name: 'Kimi K3.1 Pro',         dev: 'moonshot', provider: 'etageone', vision: true,  mult: 3, logo: 'kimi', tone: 'rose', paid: true, desc: { ru: 'Платная · $0.16 / $0.80 за 1M', en: 'Paid · $0.16 / $0.80 per 1M' } },
     // ---- [OI] ----
-    { id: 'gpt-6.1-sol',           name: 'GPT-6.1 Sol',           dev: 'openai', provider: 'neutralbeats', vision: true,  mult: 3, logo: 'openai', tone: 'amber', desc: { ru: 'Сильная, бесплатная', en: 'Strong, free' } },
-    { id: 'gpt-6-astra',           name: 'GPT-6 Astra',           dev: 'openai', provider: 'neutralbeats', vision: true,  mult: 3, logo: 'openai', tone: 'rose',  paid: true, desc: { ru: 'Платная · $0.34 / $1.70 за 1M', en: 'Paid · $0.34 / $1.70 per 1M' } },
-    { id: 'gpt-6-luna',            name: 'GPT-6 Luna',            dev: 'openai', provider: 'neutralbeats', vision: true,  mult: 2, logo: 'openai', tone: 'sky',   desc: { ru: 'Тихая и аккуратная, бесплатная', en: 'Quiet and neat, free' } },
+    { id: 'gpt-6.1-terra',         name: 'GPT-6.1 Terra',         dev: 'openai', provider: 'etageone', vision: true,  mult: 3, logo: 'openai', tone: 'mint', desc: { ru: 'Бесплатная в чате и боте', en: 'Free in chat and the bot' } },
+    { id: 'gpt-6.1-sol',           name: 'GPT-6.1 Sol',           dev: 'openai', provider: 'etageone', vision: true,  mult: 3, logo: 'openai', tone: 'amber', desc: { ru: 'Сильная, бесплатная', en: 'Strong, free' } },
+    { id: 'gpt-6-astra',           name: 'GPT-6 Astra',           dev: 'openai', provider: 'etageone', vision: true,  mult: 3, logo: 'openai', tone: 'rose',  paid: true, desc: { ru: 'Платная · $0.34 / $1.70 за 1M', en: 'Paid · $0.34 / $1.70 per 1M' } },
+    { id: 'gpt-6-luna',            name: 'GPT-6 Luna',            dev: 'openai', provider: 'etageone', vision: true,  mult: 2, logo: 'openai', tone: 'sky',   desc: { ru: 'Тихая и аккуратная, бесплатная', en: 'Quiet and neat, free' } },
     // ---- Z.AI ----
-    { id: 'glm-5.3-flash',         name: 'GLM 5.3 Flash',         dev: 'zai', provider: 'neutralbeats', vision: true,  mult: 0.1, logo: 'zai', tone: 'mint',  desc: { ru: 'Быстрая и аккуратная, расход лимита ×0.1', en: 'Fast and precise, limit usage ×0.1' } },
+    { id: 'glm-5.3-flash',         name: 'GLM 5.3 Flash',         dev: 'zai', provider: 'etageone', vision: true,  mult: 0.1, logo: 'zai', tone: 'mint',  desc: { ru: 'Быстрая и аккуратная, расход лимита ×0.1', en: 'Fast and precise, limit usage ×0.1' } },
     // ---- xAI ----
-    { id: 'grok-4.7',              name: 'Grok 4.7',              dev: 'xai', provider: 'neutralbeats', vision: true,  mult: 3, logo: 'xai', tone: 'rose',  paid: true, desc: { ru: 'Платная · $0.20 / $1.00 за 1M', en: 'Paid · $0.20 / $1.00 per 1M' } },
+    { id: 'grok-4.7',              name: 'Grok 4.7',              dev: 'xai', provider: 'etageone', vision: true,  mult: 3, logo: 'xai', tone: 'rose',  paid: true, desc: { ru: 'Платная · $0.20 / $1.00 за 1M', en: 'Paid · $0.20 / $1.00 per 1M' } },
     // ---- Alibaba ----
-    { id: 'qwen3.8-max-0902',      name: 'Qwen3.8 Max',           dev: 'alibaba', provider: 'neutralbeats', vision: true,  mult: 3, logo: 'qwen', tone: 'mint',  paid: true, desc: { ru: 'Платная · $0.20 / $1.00 за 1M', en: 'Paid · $0.20 / $1.00 per 1M' } },
+    { id: 'qwen3.8-max-0902',      name: 'Qwen3.8 Max',           dev: 'alibaba', provider: 'etageone', vision: true,  mult: 3, logo: 'qwen', tone: 'mint',  paid: true, desc: { ru: 'Платная · $0.20 / $1.00 за 1M', en: 'Paid · $0.20 / $1.00 per 1M' } },
   ];
 
   // Группировка по разработчикам — как в боте. Провайдер наружу не показываем.

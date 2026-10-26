@@ -313,7 +313,7 @@ select {
 .composer-tools {
   display: flex; align-items: center; gap: 8px;
   flex-wrap: wrap;
-  padding: 4px 8px 0;
+  padding: 4px 8px 10px;
 }
 .attachment-tray { padding: 4px 6px 2px; }
 .effort-chips {
@@ -402,6 +402,7 @@ select {
 .pricing-dev { font-size: 12px; color: var(--md-on-surface-variant); }
 .pricing-price { font-size: 13.5px; color: var(--md-on-surface-variant); font-variant-numeric: tabular-nums; }
 .pricing-price b { color: var(--md-on-surface); font-weight: 600; }
+.pricing-cache { display: block; margin-top: 3px; font-size: 11.5px; opacity: .78; }
 .pricing-save { font-size: 13.5px; font-weight: 700; color: var(--md-mint); font-variant-numeric: tabular-nums; }
 .pricing-note { font-size: .78rem; color: var(--md-on-surface-variant); margin-top: 10px; line-height: 1.5; }
 .pricing-note.is-api {
@@ -562,7 +563,8 @@ select {
     padding: 14px 16px;
   }
   .pricing-model { margin-bottom: 2px; }
-  .pricing-price { display: flex; align-items: baseline; gap: 6px; }
+  .pricing-price { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .pricing-cache { flex-basis: 100%; margin-top: 0; }
   .pricing-price::before {
     content: attr(data-label);
     font-size: .7rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
@@ -580,7 +582,7 @@ select {
     color: var(--md-on-surface-variant);
     min-width: 92px; margin-right: 0;
   }
-  .composer-tools { padding: 8px 8px 0; gap: 6px; }
+  .composer-tools { padding: 8px 8px 10px; gap: 6px; }
   .effort-chips { flex: 0 0 auto; }
   .effort-chip { padding: 0 8px; }
   .effort-chip span:last-child { display: none; }
