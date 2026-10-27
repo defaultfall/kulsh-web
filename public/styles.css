@@ -726,7 +726,7 @@ body.is-booting .boot-skeleton { pointer-events: auto; }
 .attachment-item .att-remove:hover { background: color-mix(in srgb, var(--md-error) 25%, transparent); color: var(--md-error); }
 .attachment-item .att-remove .material-symbols-rounded { font-size: 15px; }
 
-.composer-row { display: flex; align-items: flex-end; gap: 4px; min-width: 0; padding-bottom: 6px; }
+.composer-row { display: flex; align-items: flex-end; gap: 4px; min-width: 0; }
 .composer-input {
   flex: 1; border: none; outline: none; background: transparent; resize: none;
   color: var(--md-on-surface); font-size: .96rem; line-height: 1.5;

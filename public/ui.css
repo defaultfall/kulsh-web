@@ -313,7 +313,7 @@ select {
 .composer-tools {
   display: flex; align-items: center; gap: 8px;
   flex-wrap: wrap;
-  padding: 4px 8px 10px;
+  padding: 4px 8px 4px;
 }
 .attachment-tray { padding: 4px 6px 2px; }
 .effort-chips {
@@ -582,7 +582,7 @@ select {
     color: var(--md-on-surface-variant);
     min-width: 92px; margin-right: 0;
   }
-  .composer-tools { padding: 8px 8px 10px; gap: 6px; }
+  .composer-tools { padding: 8px 8px 4px; gap: 6px; }
   .effort-chips { flex: 0 0 auto; }
   .effort-chip { padding: 0 8px; }
   .effort-chip span:last-child { display: none; }
