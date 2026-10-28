@@ -745,12 +745,12 @@
       } catch (e) { reject(e); }
     });
   }
-  function flashCopied(btn, text) {
-    copyText(text).catch(() => {});
+  function flashNotice(btn, text) {
+    if (!btn) return;
     document.querySelectorAll('.copy-flash').forEach((n) => n.remove());
     const flash = document.createElement('span');
     flash.className = 'copy-flash';
-    flash.textContent = window.t('chat.copied');
+    flash.textContent = text || window.t('chat.copied');
     document.body.appendChild(flash);
     const r = btn.getBoundingClientRect();
     const placeLeft = r.left > 160;
@@ -762,6 +762,11 @@
       flash.classList.remove('is-on');
       setTimeout(() => flash.remove(), 220);
     }, 1400);
+  }
+
+  function flashCopied(btn, text) {
+    copyText(text).catch(() => {});
+    flashNotice(btn, window.t('chat.copied'));
   }
 
   // ---------- Безопасная отрисовка HTML (превью скиллов/файлов) ----------
@@ -1248,20 +1253,234 @@
     } catch { return ''; }
   }
 
+  function splitImageBlock(text) {
+    const s = String(text || '');
+    const m = /!image\b/i.exec(s);
+    if (!m) return { before: s, after: '', spec: null };
+    const before = s.slice(0, m.index).trim();
+    let rest = s.slice(m.index + m[0].length).trim();
+    let raw = '';
+    const fenced = rest.match(/^```(?:json)?\s*([\s\S]*?)```/i);
+    if (fenced) {
+      raw = fenced[1];
+      rest = rest.slice(fenced[0].length).trim();
+    } else {
+      const a = rest.indexOf('{');
+      const b = rest.lastIndexOf('}');
+      if (a !== -1 && b > a) {
+        raw = rest.slice(a, b + 1);
+        rest = rest.slice(b + 1).trim();
+      }
+    }
+    let spec = null;
+    if (raw) { try { spec = JSON.parse(raw); } catch {} }
+    return { before,
+      after: spec ? rest : s.slice(m.index + m[0].length).trim(),
+      spec };
+  }
+
+  function hideImageBlock(text) {
+    const s = String(text || '');
+    const m = /!image\b/i.exec(s);
+    return m ? s.slice(0, m.index) : s;
+  }
+
+  function imageDataUrl(image) {
+    return 'data:' + (image.mimeType || 'image/png') + ';base64,' + image.data;
+  }
+
+  function genImageHtml(m) {
+    const src = imageDataUrl(m.image);
+    return '<figure class="gen-image">'
+      + '<button type="button" class="gen-image-open" aria-label="' + escapeAttr(window.t('chat.imageOpen')) + '">'
+      + '<img src="' + src + '" alt="" loading="lazy" />'
+      + '<span class="gen-image-zoom material-symbols-rounded">zoom_in</span>'
+      + '</button>'
+      + '<div class="gen-image-actions">'
+      + '<button type="button" data-gen-action="download" title="' + escapeAttr(window.t('chat.imageDownload')) + '"><span class="material-symbols-rounded">download</span></button>'
+      + '<button type="button" data-gen-action="copy" title="' + escapeAttr(window.t('chat.imageCopy')) + '"><span class="material-symbols-rounded">content_copy</span></button>'
+      + '<button type="button" data-gen-action="edit" title="' + escapeAttr(window.t('chat.imageEdit')) + '"><span class="material-symbols-rounded">edit</span></button>'
+      + '</div></figure>';
+  }
+
+  function genPendingHtml(m) {
+    const pct = Math.max(0, Math.min(100, Number(m.generating && m.generating.percent) || 0));
+    return '<div class="gen-card" role="status" aria-live="polite">'
+      + '<div class="gen-visual"><span class="gen-blob"></span><span class="gen-grid"></span></div>'
+      + '<div class="gen-meta"><span class="gen-label">' + escapeHtml(window.t('chat.imageGenerating')) + '</span>'
+      + '<span class="gen-percent">' + pct + '%</span></div>'
+      + '<div class="gen-track"><i style="width:' + pct + '%"></i></div>'
+      + '</div>';
+  }
+
+  function downloadImage(image) {
+    if (!image || !image.data) return;
+    try {
+      const bin = atob(String(image.data).replace(/\s+/g, ''));
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: image.mimeType || 'image/png' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'kulsh-image-' + Date.now() + '.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    } catch (e) {
+      console.error('[image] download failed', e);
+    }
+  }
+
+  async function copyImage(image) {
+    if (!image || !image.data) return false;
+    try {
+      const bin = atob(String(image.data).replace(/\s+/g, ''));
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: image.mimeType || 'image/png' });
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        return true;
+      }
+    } catch (e) {
+      console.error('[image] copy failed', e);
+    }
+    return false;
+  }
+
+  function bindGenImage(content, m) {
+    content.querySelectorAll('.gen-image-open').forEach((btn) => {
+      btn.addEventListener('click', () => openImageLightbox(m.image));
+    });
+    content.querySelectorAll('[data-gen-action]').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const action = btn.dataset.genAction;
+        if (action === 'download') downloadImage(m.image);
+        else if (action === 'edit') editImageInComposer(m.image);
+        else if (action === 'copy') {
+          const ok = await copyImage(m.image);
+          flashNotice(btn, ok ? window.t('chat.imageCopied') : window.t('chat.imageCopyFail'));
+        }
+      });
+    });
+  }
+
+  let imageLightbox = null;
+
+  function ensureImageLightbox() {
+    if (imageLightbox) return imageLightbox;
+    const box = document.createElement('div');
+    box.className = 'image-lightbox';
+    box.innerHTML = '<div class="image-lightbox-backdrop" data-close></div>'
+      + '<div class="image-lightbox-panel" role="dialog" aria-modal="true">'
+      + '<img class="image-lightbox-img" alt="" />'
+      + '<div class="image-lightbox-bar">'
+      + '<button type="button" data-lb="download"><span class="material-symbols-rounded">download</span><span></span></button>'
+      + '<button type="button" data-lb="copy"><span class="material-symbols-rounded">content_copy</span><span></span></button>'
+      + '<button type="button" data-lb="edit"><span class="material-symbols-rounded">edit</span><span></span></button>'
+      + '<button type="button" data-lb="prompt"><span class="material-symbols-rounded">notes</span><span></span></button>'
+      + '<button type="button" data-lb="close" class="is-close"><span class="material-symbols-rounded">close</span><span></span></button>'
+      + '</div></div>';
+    document.body.appendChild(box);
+    const state = { image: null };
+    const close = () => { box.classList.remove('is-open'); state.image = null; };
+    box.addEventListener('click', (e) => {
+      const closeEl = e.target.closest('[data-close]');
+      if (closeEl) { close(); return; }
+      const btn = e.target.closest('[data-lb]');
+      if (!btn) return;
+      const action = btn.dataset.lb;
+      if (action === 'close') { close(); return; }
+      if (!state.image) return;
+      if (action === 'download') downloadImage(state.image);
+      else if (action === 'edit') { editImageInComposer(state.image); close(); }
+      else if (action === 'prompt') flashCopied(btn, state.image.prompt || '');
+      else if (action === 'copy') {
+        copyImage(state.image).then((ok) => {
+          flashNotice(btn, ok ? window.t('chat.imageCopied') : window.t('chat.imageCopyFail'));
+        });
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && box.classList.contains('is-open')) close();
+    });
+    const labels = {
+      download: window.t('chat.imageDownload'),
+      copy: window.t('chat.imageCopy'),
+      edit: window.t('chat.imageEdit'),
+      prompt: window.t('chat.imageCopyPrompt'),
+      close: window.t('chat.imageClose'),
+    };
+    for (const [key, label] of Object.entries(labels)) {
+      const btn = box.querySelector(`[data-lb="${key}"]`);
+      if (!btn) continue;
+      btn.querySelector('span:last-child').textContent = label;
+      btn.setAttribute('aria-label', label);
+      btn.title = label;
+    }
+    imageLightbox = { box, state, close };
+    return imageLightbox;
+  }
+
+  function openImageLightbox(image) {
+    if (!image || !image.data) return;
+    const lb = ensureImageLightbox();
+    lb.state.image = image;
+    lb.box.querySelector('.image-lightbox-img').src = imageDataUrl(image);
+    lb.box.querySelector('[data-lb="prompt"]').style.display = image.prompt ? '' : 'none';
+    lb.box.classList.add('is-open');
+  }
+
+  function editImageInComposer(image) {
+    if (!image || !image.data) return;
+    const name = 'generated-' + Date.now() + '.png';
+    AppState.pendingAttachments.push({
+      name,
+      mimeType: image.mimeType || 'image/png',
+      data: image.data,
+      size: Math.floor((image.data.replace(/\s+/g, '').length * 3) / 4),
+    });
+    renderAttachmentTray();
+    if (!el.composerInput.value.trim()) {
+      el.composerInput.value = 'отредактируй это изображение: ';
+      autoGrow();
+    }
+    el.composerInput.focus();
+    el.composerInput.setSelectionRange(el.composerInput.value.length, el.composerInput.value.length);
+  }
+
   function fillContent(content, m) {
     if (m.pending) {
       content.innerHTML = '<div class="typing"><span class="typing-dots"><span></span><span></span><span></span></span><span class="typing-label"></span></div>';
       content.querySelector('.typing-label').textContent = window.t('chat.thinking');
-    } else if (m.error) {
+      return;
+    }
+    if (m.error) {
       content.innerHTML = '<div class="error-banner"><div class="error-mascot">' + mascotSVG('oops') + '</div>'
         + '<div class="error-text"><span class="error-title"></span><span class="error-msg"></span>'
         + '<button type="button" class="btn error-retry"><span class="material-symbols-rounded">replay</span><span class="error-retry-label"></span></button></div></div>';
       content.querySelector('.error-title').textContent = window.t('error.title');
       content.querySelector('.error-msg').textContent = m.text;
       content.querySelector('.error-retry-label').textContent = window.t('error.retry');
-    } else {
-      content.innerHTML = renderMarkdown(m.text, { streaming: !!m.streaming, msg: m, msgId: m.id });
+      return;
     }
+    const split = splitImageBlock(m.text);
+    let html = '';
+    if (split.before) html += renderMarkdown(split.before, { streaming: !!m.streaming, msg: m, msgId: m.id });
+    if (m.generating) html += genPendingHtml(m);
+    if (m.image) html += genImageHtml(m);
+    if (m.imageError) {
+      html += '<div class="gen-error"><span class="material-symbols-rounded">error</span><span>' + escapeHtml(m.imageError) + '</span></div>';
+    }
+    const after = m.imageAfter || split.after;
+    if (after) html += renderMarkdown(after, { streaming: !!m.streaming, msg: m, msgId: m.id });
+    if (!html) html = renderMarkdown('', { streaming: !!m.streaming, msg: m, msgId: m.id });
+    content.innerHTML = html;
+    if (m.image) bindGenImage(content, m);
   }
 
   function patchMessageNode(node, m) {
@@ -1641,6 +1860,11 @@
       const atts = m.attachments || [];
       const keep = i === lastUser || (recall && recallIdx.has(i));
       let content = cleanRecall(m.text || '');
+      if (m.role === 'assistant' && m.imageAfter) content += (content ? '\n' : '') + m.imageAfter;
+      if (m.role === 'assistant' && m.image) {
+        const note = '[в этом сообщении сгенерировано изображение' + (m.image.prompt ? ': ' + m.image.prompt : '') + ']';
+        content += (content ? '\n' : '') + note;
+      }
       if (!keep && atts.length) {
         const note = '[Вложения (содержимое сейчас не передаётся): ' + atts.map((a) => a.name).join(', ') + ']';
         content = content ? content + '\n' + note : note;
@@ -1655,6 +1879,114 @@
     if (e === 'low')    return 'СТИЛЬ ОТВЕТА: отвечай кратко и по существу, без лишних деталей и вступлений.';
     if (e === 'high')   return 'СТИЛЬ ОТВЕТА: рассуждай тщательно, раскрывай детали, приводи примеры и крайние случаи.';
     return '';
+  }
+
+  function collectImageRefs(chat, msg, spec) {
+    const refs = [];
+    const seen = new Set();
+    const push = (mimeType, data) => {
+      if (!mimeType || !String(mimeType).startsWith('image/') || !data) return;
+      const marker = String(data).slice(0, 96) + ':' + String(data).length;
+      if (seen.has(marker)) return;
+      seen.add(marker);
+      if (refs.length < 4) refs.push({ mimeType, data });
+    };
+    const idx = chat.messages.indexOf(msg);
+    let lastUser = null;
+    for (let i = idx - 1; i >= 0; i--) {
+      if (chat.messages[i].role === 'user') { lastUser = chat.messages[i]; break; }
+    }
+    if (lastUser) {
+      for (const a of (lastUser.attachments || [])) push(a.mimeType, a.data);
+    }
+    if (spec && spec.edit) {
+      for (let i = idx - 1; i >= 0 && refs.length < 4; i--) {
+        const m = chat.messages[i];
+        if (m.image) push(m.image.mimeType, m.image.data);
+        if (m.role === 'user') {
+          for (const a of (m.attachments || [])) push(a.mimeType, a.data);
+        }
+      }
+    }
+    return refs;
+  }
+
+  async function generateMessageImage(chat, msg, spec, before, after) {
+    msg.text = before || '';
+    msg.imageAfter = after || '';
+    msg.generating = { percent: 0 };
+    delete msg.pending;
+    delete msg.streaming;
+    delete msg.imageError;
+    renderMessages();
+
+    const refs = collectImageRefs(chat, msg, spec);
+    const ctrl = new AbortController();
+    currentAbort = ctrl;
+    try {
+      const res = await fetch('/api/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: ctrl.signal,
+        body: JSON.stringify({
+          prompt: spec.prompt,
+          aspectRatio: spec.aspect_ratio || spec.aspectRatio || '',
+          size: spec.size || '',
+          edit: !!spec.edit,
+          refs,
+        }),
+      });
+      if (!res.ok || !res.body) throw new Error('http_' + res.status);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+          const payload = trimmed.slice(5).trim();
+          if (!payload || payload === '[DONE]') continue;
+          let obj;
+          try { obj = JSON.parse(payload); } catch { continue; }
+          if (obj.imageProgress != null && msg.generating) {
+            msg.generating.percent = Number(obj.imageProgress) || 0;
+            renderMessages();
+          }
+          if (obj.image && obj.image.data) {
+            msg.image = {
+              data: obj.image.data,
+              mimeType: obj.image.mimeType || 'image/png',
+              prompt: spec.prompt || '',
+            };
+            delete msg.generating;
+            renderMessages();
+          }
+          if (obj.error) {
+            delete msg.generating;
+            msg.imageError = obj.limit
+              ? window.t('chat.imageLimit')
+              : window.t('chat.imageFailed');
+            renderMessages();
+          }
+        }
+      }
+    } catch (e) {
+      delete msg.generating;
+      if (!(e && e.name === 'AbortError')) {
+        console.error('[image] request failed', e);
+        msg.imageError = window.t('chat.imageFailed');
+      }
+      renderMessages();
+    } finally {
+      currentAbort = null;
+    }
+    saveChats(AppState.chats);
+    renderMessages();
   }
 
   async function requestAssistantReply(chat, opts) {
@@ -1740,7 +2072,7 @@
               fullText += obj.delta;
               const msg = getMsg();
               if (msg) {
-                msg.text = fullText;
+                msg.text = hideImageBlock(fullText);
                 msg.pending = false;
                 msg.streaming = true;
                 scheduleStreamRender();
@@ -1765,6 +2097,7 @@
 
     currentAbort = null;
     fullText = cleanRecall(fullText);
+    const split = splitImageBlock(fullText);
 
     const msg = getMsg();
     if (msg) {
@@ -1772,22 +2105,27 @@
         Object.assign(msg, { text: window.t('error.generic'), error: true });
         delete msg.pending; delete msg.streaming;
       } else if (fullText.trim()) {
-        if (deltaCount <= 1 && fullText.length > 24 && !AppState.stoppedByUser) {
+        const visible = split.before;
+        if (deltaCount <= 1 && visible.length > 24 && !AppState.stoppedByUser) {
           msg.text = '';
           msg.pending = false;
           msg.streaming = true;
           renderMessages();
-          await animateTyping(chat, pendingMsg.id, fullText);
+          await animateTyping(chat, pendingMsg.id, visible);
         }
         const cur = getMsg();
         if (cur) {
-          cur.text = cleanRecall(cur.text || fullText).trim();
+          cur.text = split.before.trim();
+          cur.imageAfter = split.after;
           cur.stopped = !!AppState.stoppedByUser;
           cur.thinking = false;
           cur.searching = false;
           if (gotTruncated && !AppState.stoppedByUser) cur.truncated = true;
           delete cur.pending; delete cur.streaming;
           if (AppState.settings.voiceAutoplay && !AppState.stoppedByUser) speakText(cur.text);
+        }
+        if (split.spec && cur && !AppState.stoppedByUser) {
+          await generateMessageImage(chat, cur, split.spec, split.before, split.after);
         }
       } else if (AppState.stoppedByUser) {
         chat.messages.splice(chat.messages.indexOf(msg), 1);

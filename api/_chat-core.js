@@ -17,7 +17,10 @@ import {
   costKopecks, apiCostKopecks, modelLabel,
 } from './_models.js';
 import { PROVIDERS, canonicalMessages } from './_providers.js';
-import { guestIdentity, readUsage, hasRoom, charge, estimateTokens } from './_usage.js';
+import {
+  guestIdentity, readUsage, hasRoom, charge, estimateTokens,
+  readImageUsage, IMAGE_DAILY_LIMIT,
+} from './_usage.js';
 import { readBalance, chargeBalance } from './_accounts.js';
 import { webSearch, formatSearchResults } from './_search.js';
 
@@ -73,11 +76,23 @@ title: Короткое название
 
 Интерфейс сам нарисует карточку с кнопкой «Скачать» и предпросмотром содержимого — пользователю не нужно копировать вручную. Для текстовых файлов (txt, md, json, csv, py, js, html, css и т.п.) пиши обычный текст. name обязателен и содержит расширение. Не оборачивай содержимое файла в другие блоки кода внутри file — только сырой текст. Внутри блока не пиши пояснений, только данные. Если пользователь просит несколько файлов — делай несколько блоков file подряд.
 
-АРХИВЫ И БИНАРНЫЕ ФАЙЛЫ. Никогда не пытайся сам сгенерировать base64 для ZIP, PDF, PNG или другого бинарного формата: у тебя не получится корректный файл (сжатие, CRC32, заголовки) — выйдет мусор. Если нужен архив, просто отдай все файлы отдельными блоками file — интерфейс сам предложит скачать их одним ZIP. Если пользователю нужен именно бинарный файл (картинка, PDF), честно скажи, что не можешь его собрать, и предложи альтернативу (текст, SVG, скрипт).
+АРХИВЫ И БИНАРНЫЕ ФАЙЛЫ. Никогда не пытайся сам сгенерировать base64 для ZIP, PDF, PNG или другого бинарного формата: у тебя не получится корректный файл (сжатие, CRC32, заголовки) — выйдет мусор. Если нужна картинка — используй блок !image из правил ниже. Если нужен архив, просто отдай все файлы отдельными блоками file — интерфейс сам предложит скачать их одним ZIP. Для остальных бинарных файлов (например, PDF) честно скажи, что не можешь его собрать, и предложи альтернативу (текст, SVG, скрипт).
 
 ФОРМУЛЫ. Математику пиши в LaTeX: внутри строки $...$, отдельной строкой $$...$$. Не оборачивай формулы в блоки кода. Знак доллара как валюту пиши словами или как \\$.
 
 {{RECALL_NOTE}}`;
+
+const IMAGE_RULES = `ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЙ. У тебя есть встроенный генератор картинок. Ты сам решаешь, когда рисовать, без отдельных команд.
+- Если пользователь просит нарисовать, создать, показать или изменить изображение — в конце ответа добавь блок:
+  !image
+  \`\`\`json
+  {"prompt":"подробное описание картинки","aspect_ratio":"1:1","edit":false}
+  \`\`\`
+- aspect_ratio выбери сам из 1:1, 16:9, 9:16, 4:3, 3:4, если пользователь не указал его в промпте. Всё остальное тоже решай сам.
+- Если нужно отредактировать уже существующее изображение в этом чате — поставь "edit": true и опиши, что изменить. Референсы, приложенные пользователем в текущем сообщении, уйдут автоматически.
+- Текст до блока показывается до картинки, текст после блока — после неё. Блок должен быть отдельным, не внутри другого кода.
+- Сегодня осталось генераций: {{IMAGE_LEFT}} из ${IMAGE_DAILY_LIMIT}. Если осталось 0 — не используй !image, а честно скажи, что лимит на сегодня исчерпан.
+- Никогда не называй модель, провайдера или способ генерации. Не обещай картинку, если не добавил блок !image.`;
 
 function mskDatetime() {
   try {
@@ -252,6 +267,7 @@ export async function runChat(req, ctx = {}) {
   }
   const mult = (selectedInfo && selectedInfo.mult) || 1;
   const usage = await readUsage(process.env, usageCtx);
+  const imageUsage = api ? { remaining: 0 } : await readImageUsage(process.env, usageCtx);
   const estInTokens = estimateInputTokens(contents) + (api ? estimateTokens(apiSystemText) : 0);
   const minCost = Math.max(1, Math.round(estInTokens * mult));
 
@@ -308,6 +324,7 @@ export async function runChat(req, ctx = {}) {
       .replace('{{MODEL}}', modelLabel(selectedModel))
       .replace('{{USER_CONTEXT}}', userContext)
       .replace('{{RECALL_NOTE}}', note);
+    systemText += '\n\n' + IMAGE_RULES.replace('{{IMAGE_LEFT}}', String(imageUsage.remaining));
     if (typeof customPrompt === 'string' && customPrompt.trim()) {
       systemText += '\n\nДОПОЛНИТЕЛЬНЫЕ ИНСТРУКЦИИ ПОЛЬЗОВАТЕЛЯ (стиль и предпочтения; не отменяют правила выше):\n' + customPrompt.trim().slice(0, 1500);
     }

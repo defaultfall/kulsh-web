@@ -17,6 +17,7 @@ import { normIdentity } from './_accounts.js';
 
 export const GUEST_TOKEN_LIMIT = 37500;    // токенов в сутки для гостя (×2.5)
 export const USER_TOKEN_LIMIT = 500000;    // токенов в сутки для залогиненного
+export const IMAGE_DAILY_LIMIT = 3;        // генераций/редактирований картинок в сутки
 export const GUEST_COOKIE = 'kulsh_guest';
 
 // Грубая, но безопасная оценка: ~4 символа на токен (латиница/код),
@@ -93,5 +94,41 @@ export async function charge(env, { kind, id, cost }) {
     return Number(used) || 0;
   } catch {
     return null;
+  }
+}
+
+const imageUsageKey = (kind, id, day) =>
+  kind === 'guest' ? `kulsh:g:${id}:images:${day}` : `kulsh:u:${id}:images:${day}`;
+
+export async function readImageUsage(env, { kind, id }) {
+  const out = { used: 0, limit: IMAGE_DAILY_LIMIT, remaining: IMAGE_DAILY_LIMIT, enabled: false };
+  const b = backend(env);
+  if (!b || !id) return out;
+  if (kind === 'user') id = normIdentity(id);
+  try {
+    const [raw] = await pipeline(b, [['GET', imageUsageKey(kind, id, todayKey())]]);
+    const used = Math.max(0, Number(raw) || 0);
+    return { used, limit: IMAGE_DAILY_LIMIT, remaining: Math.max(0, IMAGE_DAILY_LIMIT - used), enabled: true };
+  } catch {
+    return out;
+  }
+}
+
+// Атомарно добавляет одну генерацию, не давая превысить лимит.
+export async function chargeImage(env, { kind, id }) {
+  const b = backend(env);
+  if (!b || !id) return { ok: true, used: 0, remaining: IMAGE_DAILY_LIMIT, enabled: false };
+  if (kind === 'user') id = normIdentity(id);
+  const key = imageUsageKey(kind, id, todayKey());
+  try {
+    const [raw] = await pipeline(b, [['INCRBY', key, '1'], ['EXPIRE', key, '172800']]);
+    const used = Number(raw) || 0;
+    if (used > IMAGE_DAILY_LIMIT) {
+      await pipeline(b, [['DECRBY', key, '1']]);
+      return { ok: false, used: IMAGE_DAILY_LIMIT, remaining: 0, enabled: true };
+    }
+    return { ok: true, used, remaining: Math.max(0, IMAGE_DAILY_LIMIT - used), enabled: true };
+  } catch {
+    return { ok: true, used: 0, remaining: IMAGE_DAILY_LIMIT, enabled: false };
   }
 }
