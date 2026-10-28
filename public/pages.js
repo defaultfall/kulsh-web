@@ -78,7 +78,7 @@
       'stack.1.t': 'Frontend', 'stack.1.d': 'Чистый HTML/CSS/JS в стиле Material Design 3, без сборщика. Светлая и тёмная темы, акценты, локальные шрифты и иконки.',
       'stack.2.t': 'Backend', 'stack.2.d': 'Vercel Edge Functions: стриминг ответов, ротация API-ключей, проверка сессии и учёт лимитов.',
       'stack.3.t': 'Хранилище', 'stack.3.d': 'История чатов, настройки и usage хранятся в Upstash Redis по аккаунту.',
-      'stack.4.t': 'Открытый код', 'stack.4.d': 'Проект можно форкнуть и поднять у себя: репозиторий starfall-apk/kulsh-web.',
+      'stack.4.t': 'Открытый код', 'stack.4.d': 'Проект можно форкнуть и поднять у себя: репозиторий starf6ll/kulsh-web.',
       'about.join.h2': 'Присоединяйся',
       'about.join.p': 'Заходи в чат, пробуй модели и предлагай идеи — проект живой и открыт для правок.',
 
@@ -152,7 +152,7 @@
       'stack.1.t': 'Frontend', 'stack.1.d': 'Plain HTML/CSS/JS in the Material Design 3 style, no bundler. Light and dark themes, accents, local fonts and icons.',
       'stack.2.t': 'Backend', 'stack.2.d': 'Vercel Edge Functions: streaming replies, API key rotation, session checks and usage accounting.',
       'stack.3.t': 'Storage', 'stack.3.d': 'Chat history, settings and usage are stored in Upstash Redis per account.',
-      'stack.4.t': 'Open source', 'stack.4.d': 'Fork it and run your own: repository starfall-apk/kulsh-web.',
+      'stack.4.t': 'Open source', 'stack.4.d': 'Fork it and run your own: repository starf6ll/kulsh-web.',
       'about.join.h2': 'Join in',
       'about.join.p': 'Open the chat, try the models and share ideas — the project is alive and open to changes.',
 
